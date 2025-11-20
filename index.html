@@ -253,7 +253,6 @@
             </div>
         </div>
         <div id="player-frame-container">
-            <!-- Removed Sandbox Attribute to fix player issues -->
             <iframe id="player-iframe" src="" allowfullscreen allow="autoplay; encrypted-media"></iframe>
         </div>
     </div>
@@ -332,9 +331,8 @@
 
     <audio id="bg-music" src="https://github.com/zero5yt/Mp3/raw/refs/heads/main/Ako%20si%20Zero5YT.mp3" loop></audio>
 
-    <!-- ADS SCRIPT ADDED HERE -->
+    <!-- 1. SOCIAL BAR ADS (POP-UP) -->
     <script type='text/javascript' src='//pl28097228.effectivegatecpm.com/fc/08/65/fc086515f18deaf71be787e5c5a45dce.js'></script>
-    <!-- END ADS -->
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
@@ -354,6 +352,9 @@
         let userHistory = [];
         let commentsUnsubscribe = null; 
         const bgMusic = document.getElementById('bg-music'); bgMusic.volume = 0.3;
+
+        // --- 2. DIRECT LINK FOR ADS (Smart Link) ---
+        const DIRECT_AD_LINK = "https://www.effectivegatecpm.com/tuwnc1ge?key=aa75acf007ec2ab9265e9dae93be2bdb"; 
 
         onAuthStateChanged(auth, (user) => {
             setTimeout(() => {
@@ -613,6 +614,7 @@
             });
         }
 
+        // --- UPDATED WATCH LOGIC WITH ADS ---
         window.tryWatch = (itemOrId, url=null) => {
             let item = itemOrId;
             if (typeof item === 'string') {
@@ -625,6 +627,13 @@
 
             if(owned) { 
                 addToHistory(item); 
+                
+                // LOGIC: If FREE -> Show Ads first, then Play
+                if (!item.isPaid) {
+                    window.open(DIRECT_AD_LINK, '_blank'); // Open Smart Link
+                }
+
+                // Then Play
                 if(videoUrl) {
                     incrementViewCount(item); 
                     launchPlayerActivity(item.title, videoUrl); 
@@ -633,6 +642,7 @@
                 }
             }
             else {
+                // IF PAID -> BUY PROCESS (NO ADS)
                 const currentBal = parseFloat(userProfile.balance) || 0;
                 if(currentBal >= WATCH_COST) {
                     if(confirm(`Purchase access to "${item.title}" for ₱${WATCH_COST.toFixed(2)}?`)) {
@@ -744,22 +754,12 @@
         
         window.logout = () => signOut(auth);
         
-        // FIXED: Balance Request now saves the Reference Number properly
         document.getElementById('request-balance-form').addEventListener('submit', async e => { 
             e.preventDefault(); 
             const amt = document.getElementById('topup-amount').value;
-            const refNum = document.getElementById('topup-ref').value; // Get Ref No.
+            const refNum = document.getElementById('topup-ref').value; 
             if(!amt || !refNum) return;
-            
-            await addDoc(collection(firestore,"balance_requests"),{
-                userId:auth.currentUser.uid, 
-                userEmail: auth.currentUser.email, // Saved email for easier admin checking
-                amount:parseFloat(amt), 
-                refNum: refNum, // Saved Ref No.
-                status:'pending', 
-                timestamp:serverTimestamp()
-            }); 
-            
+            await addDoc(collection(firestore,"balance_requests"),{userId:auth.currentUser.uid, userEmail: auth.currentUser.email, amount:parseFloat(amt), refNum: refNum, status:'pending', timestamp:serverTimestamp()}); 
             showToast('Request Sent'); 
             document.getElementById('wallet-modal').classList.remove('open'); 
             document.getElementById('request-balance-form').reset();
