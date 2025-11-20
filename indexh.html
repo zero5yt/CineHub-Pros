@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Final Debugger</title>
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+    <style>
+        body { background: #111; color: #fff; font-family: sans-serif; padding: 20px; text-align: center; }
+        button { padding: 15px 30px; font-size: 1.2rem; background: #e50914; color: white; border: none; border-radius: 10px; margin-top: 20px; cursor: pointer; }
+        #status { margin-top: 20px; border: 1px solid #555; padding: 15px; text-align: left; white-space: pre-wrap; background: #222; }
+        .ok { color: #2ecc71; } .fail { color: #e74c3c; } .wait { color: #f1c40f; }
+    </style>
+</head>
+<body>
+    <h1>OneSignal Final Fix</h1>
+    <p>Hintayin mawala ang loading bago pindutin.</p>
+    
+    <button id="sub-btn" onclick="subscribe()">CLICK TO SUBSCRIBE</button>
+
+    <div id="status">Initializing OneSignal...</div>
+
+    <script>
+        function log(msg, type='wait') {
+            const el = document.getElementById('status');
+            el.innerHTML += `<div class="${type}">${msg}</div>`;
+        }
+
+        window.OneSignal = window.OneSignal || [];
+        
+        OneSignal.push(function() {
+            OneSignal.init({
+                appId: "79f8e5ce-3f58-46ee-b53a-89e16f47470e",
+                // Siguraduhin natin na ito ang path. Kung nasa loob ng folder, lagyan ng folder name (e.g. /js/OneSignal...)
+                serviceWorkerPath: "OneSignalSDKWorker.js", 
+                serviceWorkerParam: { scope: '/' },
+                notifyButton: { enable: true },
+            });
+
+            OneSignal.on('subscriptionChange', function (isSubscribed) {
+                log("Event: Subscription Changed to: " + isSubscribed, isSubscribed ? 'ok' : 'fail');
+                if(isSubscribed) {
+                    OneSignal.getUserId().then(userId => {
+                        log("✅ USER ID GENERATED: " + userId, 'ok');
+                        alert("SUCCESS! ID: " + userId);
+                    });
+                }
+            });
+
+            log("OneSignal Initialized.", 'ok');
+        });
+
+        async function subscribe() {
+            document.getElementById('status').innerHTML = ""; // Clear logs
+            log("Starting subscription process...", 'wait');
+
+            // 1. Check File Access (SW)
+            try {
+                const swCheck = await fetch('OneSignalSDKWorker.js');
+                if(swCheck.status === 200) {
+                    log("✅ OneSignalSDKWorker.js found!", 'ok');
+                } else {
+                    log("❌ ERROR: OneSignalSDKWorker.js is MISSING (404). Upload mo sa GitHub!", 'fail');
+                    return; // Stop here
+                }
+            } catch(e) {
+                log("❌ Network Error checking SW file.", 'fail');
+            }
+
+            // 2. Register SW Manually (Force)
+            if ('serviceWorker' in navigator) {
+                try {
+                    const reg = await navigator.serviceWorker.register('OneSignalSDKWorker.js');
+                    log("✅ Service Worker Registered Manually.", 'ok');
+                } catch (err) {
+                    log("❌ Service Worker Registration Failed: " + err.message, 'fail');
+                    log("Possible cause: Not HTTPS or File missing.", 'fail');
+                }
+            }
+
+            // 3. Prompt User
+            const permission = await OneSignal.getNotificationPermission();
+            log("Current Permission: " + permission, 'wait');
+
+            if (permission === 'default') {
+                log("⚠️ Showing Prompt... PLEASE CLICK ALLOW.", 'wait');
+                OneSignal.showSlidedownPrompt();
+            } else if (permission === 'granted') {
+                log("✅ Already allowed. Fetching ID...", 'ok');
+                const id = await OneSignal.getUserId();
+                if(id) {
+                    log("✅ ID: " + id, 'ok');
+                } else {
+                    log("❌ Permission granted but No ID. Internet issue or OneSignal delay.", 'fail');
+                }
+            } else {
+                log("❌ BLOCKED. Reset site settings in Chrome.", 'fail');
+            }
+        }
+    </script>
+</body>
+</html>
