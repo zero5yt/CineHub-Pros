@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineHub Debugger</title>
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async=""></script>
+    <script>
+      window.OneSignal = window.OneSignal || [];
+      OneSignal.push(function() {
+        OneSignal.init({
+          appId: "79f8e5ce-3f58-46ee-b53a-89e16f47470e",
+          serviceWorkerPath: "OneSignalSDKWorker.js", // Tinuturo natin ang file
+          notifyButton: { enable: true },
+        });
+      });
+    </script>
+    <style>
+        body { background: #000; color: #fff; font-family: sans-serif; padding: 20px; text-align: center; }
+        button { padding: 15px 30px; font-size: 1.2rem; background: red; color: white; border: none; border-radius: 10px; margin-top: 20px; }
+        #status { margin-top: 20px; border: 1px solid #555; padding: 10px; text-align: left; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>OneSignal Debugger</h1>
+    <p>Pindutin ang button para malaman ang sakit ng app.</p>
+    
+    <button onclick="checkOneSignal()">CHECK STATUS & SUBSCRIBE</button>
+
+    <div id="status">Status: Waiting...</div>
+
+    <script>
+        function log(msg) {
+            document.getElementById('status').innerHTML += msg + "\n";
+        }
+
+        async function checkOneSignal() {
+            document.getElementById('status').innerHTML = "Checking...\n";
+            
+            // 1. Check Support
+            if (!OneSignal.isPushNotificationsSupported()) {
+                log("❌ Error: Push Notif NOT supported on this browser.");
+                return;
+            } else {
+                log("✅ Browser supports Push.");
+            }
+
+            // 2. Check Service Worker
+            log("⏳ Checking Service Worker registration...");
+            try {
+                const regs = await navigator.serviceWorker.getRegistrations();
+                if(regs.length > 0) {
+                    log("✅ Service Worker found: " + regs[0].active.scriptURL);
+                } else {
+                    log("❌ ERROR: Walang Service Worker! Check mo yung GitHub file mo.");
+                }
+            } catch(e) {
+                log("⚠️ Cannot check SW: " + e.message);
+            }
+
+            // 3. Check Permission
+            const permission = await OneSignal.getNotificationPermission();
+            log("ℹ️ Permission Status: " + permission);
+
+            if (permission === "denied") {
+                log("❌ BLOCKED: Naka-block ang notif. Reset mo sa Chrome Settings.");
+            } else if (permission === "default") {
+                log("⚠️ Prompting user...");
+                OneSignal.showSlidedownPrompt();
+            } else {
+                log("✅ Permission Granted.");
+            }
+
+            // 4. Get User ID
+            const userId = await OneSignal.getUserId();
+            if (userId) {
+                log("✅ User ID: " + userId);
+                log("👉 Kopyahin mo yan at gamitin sa Tester.");
+            } else {
+                log("❌ No User ID yet. Not fully subscribed.");
+            }
+        }
+    </script>
+</body>
+</html>
