@@ -83,7 +83,7 @@
         .filter-tabs { display: inline-flex; gap: 15px; }
         .filter-tab { background: transparent; border: none; color: var(--text-dim); font-size: 0.9rem; padding-bottom: 5px; cursor: pointer; transition: 0.3s; flex-shrink: 0; }
         .filter-tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); font-weight: 600; }
-        .filter-container::-webkit-scrollbar { display: none; } /* Hide scrollbar */
+        .filter-container::-webkit-scrollbar { display: none; } 
 
         .section-title { padding: 0 20px; margin-bottom: 15px; font-size: 1.1rem; border-left: 4px solid var(--primary); padding-left: 10px; }
         .movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; padding: 0 15px; margin-bottom: 30px; }
@@ -276,13 +276,11 @@
         <div id="view-home" class="view active">
             <div id="viewpager"></div>
             
-            <!-- UPDATED FILTERS WITH NEW CATEGORIES + "MY PURCHASES" TAB -->
             <div class="filter-container">
                 <div class="filter-tabs">
                     <button class="filter-tab active" onclick="filterContent('all', this)">All</button>
                     <button class="filter-tab" onclick="filterContent('movie', this)">Movies</button>
                     <button class="filter-tab" onclick="filterContent('series', this)">Series</button>
-                    <button class="filter-tab" onclick="filterContent('purchased', this)" style="color:#e50914;">My Purchases</button>
                     <button class="filter-tab" onclick="filterContent('pop', this)">Pop</button>
                     <button class="filter-tab" onclick="filterContent('vivamax', this)">Vivamax</button>
                     <button class="filter-tab" onclick="filterContent('tagalog', this)">Tagalog Dub</button>
@@ -306,21 +304,24 @@
             <div class="settings-item"><div><div style="font-weight:600;" id="setting-name">User</div><div style="font-size:0.8rem; color:#888;" id="setting-email">email</div></div></div>
             <div class="settings-item"><span>Background Music</span><input type="checkbox" id="bg-music-toggle"></div>
             <div class="settings-item" onclick="openWalletModal()"><span>My Wallet</span><i class="fas fa-chevron-right"></i></div>
+            
+            <!-- PAID SAVE LIST (MY LIBRARY) -->
+            <div class="settings-item" onclick="openLibraryModal()"><span>My Library (Purchased)</span><i class="fas fa-film" style="color:var(--primary);"></i></div>
+            
             <div id="pending-request-display"></div>
             <div class="settings-item" onclick="openChatModal()"><span>Message Admin</span><i class="fas fa-envelope"></i></div>
             
-            <!-- REQUESTED: Subscribe Button (Make sure to change the HREF to your channel link) -->
             <a href="https://youtube.com/@zero5yt?si=L2PMcKJCYZyF9rGX" target="_blank" style="text-decoration:none; color:inherit;">
                 <div class="settings-item">
-                    <span>Subscribe YouTube ZERO5YT</span><i class="fab fa-youtube" style="color: red;"></i>
+                    <span>Subscribe YouTube</span><i class="fab fa-youtube" style="color: red;"></i>
                 </div>
             </a>
 
             <div class="settings-item" onclick="logout()" style="color: var(--primary);"><span>Logout</span><i class="fas fa-sign-out-alt"></i></div>
             
-            <!-- REQUESTED: How to use CineHub Message (Updated with POP-UP Trigger) -->
+            <!-- MODIFIED: HOW TO USE POPUP -->
             <div style="text-align: center; padding: 15px; font-size: 0.85rem;">
-                <a href="#" onclick="openTutorialModal()" style="color: #777; text-decoration: none;">How to use CineHub By Roderick A. Click Me?</a>
+                <a href="#" onclick="openTutorialModal()" style="color: #777; text-decoration: none;">How to use CineHub?</a>
             </div>
         </div>
 
@@ -367,15 +368,9 @@
             <div id="modal-tags" style="font-size:0.8rem; color:#ccc; margin-bottom:10px;"></div>
             <div id="modal-desc" style="font-size:0.9rem; color:#bbb; clear:both;"></div>
             
-            <!-- MODIFIED ACTION ROW FOR TRAILER + MOVIE BUTTONS -->
             <div class="action-row">
-                <!-- Trailer Button (Added) -->
                 <button id="modal-trailer-btn" class="btn-primary" style="flex:1; background:#555; display:none; margin-right:5px;"><i class="fas fa-film"></i> Trailer</button>
-                
-                <!-- Main Watch/Buy Button -->
                 <button id="modal-play-btn" class="btn-primary" style="flex:1.5"><i class="fas fa-play"></i> Watch</button>
-                
-                <!-- Fav Button -->
                 <button id="modal-fav-btn" class="btn-primary" style="flex:0.5; background:#333;"><i class="far fa-heart"></i></button>
             </div>
 
@@ -384,7 +379,6 @@
                 <div id="episodes-list" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;"></div>
             </div>
             
-            <!-- COMMENTS -->
             <div class="comments-section">
                 <h3>Comments</h3>
                 <div id="comments-list" class="comments-list"></div>
@@ -393,7 +387,6 @@
                     <button type="submit"><i class="fas fa-paper-plane"></i></button>
                 </form>
             </div>
-
         </div>
     </div>
 
@@ -452,21 +445,34 @@
         </div>
     </div>
 
-    <!-- NEW TUTORIAL MODAL (Added as requested) -->
+    <!-- LIBRARY MODAL -->
+    <div id="library-modal" class="modal-overlay">
+        <div class="modal-sheet">
+             <div style="position:absolute; top:10px; right:15px; font-size:1.5rem; color:#888; cursor:pointer;" onclick="document.getElementById('library-modal').classList.remove('open')">&times;</div>
+             <h3 style="margin-bottom:15px; color:var(--primary);">My Purchased Content</h3>
+             <div id="grid-library" class="movies-grid"></div>
+        </div>
+    </div>
+
+    <!-- NEW TUTORIAL MODAL (Requested) -->
     <div id="tutorial-modal" class="modal-overlay">
-        <div class="modal-sheet" style="height: auto; max-height: 80vh;">
-            <div style="position:absolute; top:10px; right:15px; font-size:1.5rem; color:#888; cursor:pointer;" onclick="closeTutorialModal()">&times;</div>
+        <div class="modal-sheet">
+            <div style="position:absolute; top:10px; right:15px; font-size:1.5rem; color:#888; cursor:pointer;" onclick="document.getElementById('tutorial-modal').classList.remove('open')">&times;</div>
             <h3 style="color:var(--primary); margin-bottom:15px;">How to use CineHub?</h3>
-            <div style="color:#ddd; font-size:0.9rem; line-height:1.6; text-align:justify;">
-                <p>How to use cinehub pro cash in? All you have to do is send at least 1 peso to the gcash or bpi number listed there and wait a moment because admin Roderick will look into it.</p>
-                <br>
-                <p>If your message has already been sent, all you need to do is enter the amount and don't forget the reference number of the message you sent because it is important.</p>
-                <br>
-                <p>Don't worry because the person who manages CineHub pro is always active, so don't worry, you can still cancel it. Just send a message to cancel and the money you paid will automatically be returned to GCash.</p>
-                <br>
-                <p>Thank you, enjoy, just request the movie you want, I'll prioritize it. The ones I collected turned out to be fake, your details are just your email, so you're safe here at Cinehub.</p>
+            <div style="text-align:left; font-size:0.9rem; color:#ccc; line-height:1.6;">
+                <p style="margin-bottom:10px;">
+                    How to use cinehub pro cash in? All you have to do is send at least 1 peso to the gcash or bpi number listed there and wait a moment because admin Roderick will look into it.
+                </p>
+                <p style="margin-bottom:10px;">
+                    If your message has already been sent, all you need to do is enter the amount and don't forget the reference number of the message you sent because it is important.
+                </p>
+                <p style="margin-bottom:10px;">
+                    Don't worry because the person who manages CineHub pro is always active, so don't worry, you can still cancel it. Just send a message to cancel and the money you paid will automatically be returned to GCash.
+                </p>
+                <p>
+                    Thank you, enjoy, just request the movie you want, I'll prioritize it. The ones I collected turned out to be fake, your details are just your email, so you're safe here at Cinehub.
+                </p>
             </div>
-            <button class="btn-primary" onclick="closeTutorialModal()" style="margin-top:20px;">Close</button>
         </div>
     </div>
 
@@ -488,7 +494,6 @@
         const firestore = getFirestore(app);
         const WATCH_COST = 1.00;
         
-        // --- ADMIN UID ---
         const ADMIN_UID = "5hok8GgRU9ZP0mQSbq0EUrHD7W52"; 
 
         let allContent = []; let userProfile = {}; let userFavorites = JSON.parse(localStorage.getItem('cinehubFavs')) || [];
@@ -497,13 +502,8 @@
         const bgMusic = document.getElementById('bg-music'); bgMusic.volume = 0.3;
         const DIRECT_AD_LINK = "https://www.effectivegatecpm.com/tuwnc1ge?key=aa75acf007ec2ab9265e9dae93be2bdb"; 
 
-        // Global vars for admin chat
         let currentChatUserId = null;
         let chatUnsubscribe = null;
-
-        // --- TUTORIAL MODAL LOGIC ---
-        window.openTutorialModal = () => document.getElementById('tutorial-modal').classList.add('open');
-        window.closeTutorialModal = () => document.getElementById('tutorial-modal').classList.remove('open');
 
         onAuthStateChanged(auth, (user) => {
             setTimeout(() => {
@@ -534,13 +534,9 @@
                     document.getElementById('user-balance-display').innerText = `₱${(userProfile.balance || 0).toFixed(2)}`;
                     document.getElementById('setting-name').innerText = userProfile.name || "User";
                     document.getElementById('setting-email').innerText = user.email;
-                    
-                    // FIX HERE: Re-render Home whenever user data (like purchases) updates
-                    if(allContent.length > 0) {
-                        renderHome();
-                    }
+                    // FIX: Force re-render home to update locks immediately after purchase
+                    renderHome();
                 } else {
-                    // Self-healing if user doc is missing but auth exists
                     setDoc(docRef, { email: user.email, balance: 0, purchasedContent: [] });
                 }
             });
@@ -600,21 +596,18 @@
         function renderHome(filter = 'all') {
             const gridTrend = document.getElementById('grid-trending');
             const gridAll = document.getElementById('grid-all');
+            // Prevent clearing if elements are not found (safety check)
+            if(!gridTrend || !gridAll) return;
+
             gridTrend.innerHTML = ''; gridAll.innerHTML = '';
             
             let contentToDisplay = [];
             
-            // FILTER LOGIC (UPDATED)
             if (filter === 'all') {
                 contentToDisplay = allContent;
-            } else if (filter === 'purchased') {
-                // MY PURCHASES FILTER
-                const ownedIds = userProfile.purchasedContent || [];
-                contentToDisplay = allContent.filter(item => ownedIds.includes(item.id));
             } else if (['movie', 'series'].includes(filter)) {
                 contentToDisplay = allContent.filter(item => item.type === filter);
             } else {
-                // For categories like Vivamax, Anime, etc. assuming they are in 'genre' or title/desc
                 const f = filter.toLowerCase();
                 contentToDisplay = allContent.filter(item => 
                     (item.genre && item.genre.toLowerCase().includes(f)) || 
@@ -675,13 +668,11 @@
                 html += `<div class="vp-slide ${idx===0?'active':''}" style="background-image: url('${item.posterUrl}')"></div>`;
                 if(idx===0) updateCarouselCaption(item);
             });
-            // DYNAMIC BUTTON - Removed hardcoded onclick
             html += `<div class="vp-content"><h2 id="vp-title"></h2><button id="vp-btn" class="btn-primary">Watch Now</button></div>`;
             vp.innerHTML = html;
             const slides = vp.querySelectorAll('.vp-slide');
             let current = 0;
             
-            // Set initial click
             document.getElementById('vp-btn').onclick = () => openDetails(items[current].id);
 
             slideInterval = setInterval(() => {
@@ -689,7 +680,6 @@
                 current = (current + 1) % slides.length;
                 slides[current].classList.add('active');
                 updateCarouselCaption(items[current]);
-                // Update click target
                 document.getElementById('vp-btn').onclick = () => openDetails(items[current].id);
             }, 5000);
         }
@@ -699,13 +689,16 @@
             const isPaid = item.isPaid;
             const views = formatViews(item.views || 0);
             const badge = isPaid ? '<span class="card-badge badge-paid">PAID</span>' : '<span class="card-badge badge-free">FREE</span>';
-            const isPurchased = userProfile.purchasedContent?.includes(item.id);
+            
+            // FIXED LOGIC: Check purchased content safely
+            const purchasedList = userProfile.purchasedContent || [];
+            const isPurchased = purchasedList.includes(item.id);
+            
             const showLock = isPaid && !isPurchased;
             const lockHtml = showLock ? '<div class="lock-center"><i class="fas fa-lock"></i></div>' : '';
             return `<div class="movie-card" onclick="openDetails('${item.id}')">${badge}<img src="${item.posterUrl}" loading="lazy">${lockHtml}<div class="views-badge"><i class="fas fa-eye"></i> ${views}</div><div class="card-overlay"><i class="fas fa-play" style="color:white; font-size:2rem;"></i></div></div>`;
         }
 
-        // --- UPDATED OPEN DETAILS FUNCTION (TRAILER + FULL MOVIE LOGIC) ---
         window.openDetails = (id) => {
             const item = allContent.find(c => c.id === id); if(!item) return;
             document.getElementById('modal-poster').src = item.posterUrl;
@@ -714,25 +707,18 @@
             const views = formatViews(item.views || 0);
             document.getElementById('modal-tags').innerHTML = `<span>${item.releaseYear||'2023'}</span> <span>${item.genre||'Action'}</span> <span><i class="fas fa-eye"></i> ${views}</span>`;
             
-            // --- TRAILER BUTTON LOGIC ---
             const trailerBtn = document.getElementById('modal-trailer-btn');
-            // If trailerUrl exists in database
             if(item.trailerUrl && item.trailerUrl.trim() !== "") {
                 trailerBtn.style.display = 'block';
-                trailerBtn.onclick = () => watchTrailer(item); // Watch Trailer Function
+                trailerBtn.onclick = () => watchTrailer(item); 
             } else {
                 trailerBtn.style.display = 'none';
             }
 
-            // --- MAIN BUTTON (FULL MOVIE/SERIES) LOGIC ---
             const playBtn = document.getElementById('modal-play-btn');
-            
-            // Check ownership
             const owned = userProfile.purchasedContent?.includes(item.id) || !item.isPaid;
             
             if (owned) {
-                // OWNED or FREE
-                // If FREE and not owned (meaning purely free), show "Watch Ad to Play" (unless bought)
                 const label = !item.isPaid ? `<i class="fas fa-ad"></i> Watch Ad to Play` : `<i class="fas fa-play"></i> Watch Full Movie`;
                 playBtn.innerHTML = label;
                 playBtn.onclick = () => {
@@ -740,15 +726,10 @@
                     else tryWatch(item);
                 };
             } else {
-                // PAID and NOT OWNED
                 if(item.type === 'series') {
-                     // Series Strategy: Ep 1 Free, Rest Paid
                      playBtn.innerHTML = `<i class="fas fa-lock"></i> Unlock All ₱${WATCH_COST.toFixed(2)}`;
-                     playBtn.onclick = () => {
-                         tryWatch(item, null, 1); // Force index 1 triggers buy logic
-                     };
+                     playBtn.onclick = () => { tryWatch(item, null, 1); };
                 } else {
-                    // Movie Strategy: Pay to watch Full Movie
                     playBtn.innerHTML = `<i class="fas fa-lock"></i> Buy ₱${WATCH_COST.toFixed(2)}`;
                     playBtn.onclick = () => tryWatch(item);
                 }
@@ -757,8 +738,6 @@
             const epArea = document.getElementById('series-episodes-area');
             if(item.type === 'series' && item.episodes) {
                 epArea.style.display = 'block';
-                
-                // EPISODE LIST RENDERING (Kept as is)
                 document.getElementById('episodes-list').innerHTML = item.episodes.map((ep, index) => {
                     const isLocked = item.isPaid && !owned && index > 0;
                     const icon = isLocked ? '<i class="fas fa-lock" style="color:#e74c3c;"></i>' : '<i class="fas fa-play-circle" style="color:var(--primary);"></i>';
@@ -781,19 +760,13 @@
             document.getElementById('details-modal').classList.add('open');
         }
 
-        // --- NEW FUNCTION: WATCH TRAILER (FREE + ADS) ---
         window.watchTrailer = (item) => {
-            // 1. Show Ad
             window.open(DIRECT_AD_LINK, '_blank');
-            
-            // 2. Play Trailer after delay (Simulating Ad view)
             setTimeout(() => {
-                // Use existing player to play trailer
                 launchPlayerActivity(item.title + " (Trailer)", item.trailerUrl);
             }, 1000);
         };
 
-        // --- UPDATED COMMENT LOADER WITH NESTED REPLY SUPPORT ---
         function loadComments(contentId) {
             const list = document.getElementById('comments-list');
             list.innerHTML = '<p style="color:#777; text-align:center;">Loading comments...</p>';
@@ -814,40 +787,19 @@
                 snap.forEach(doc => {
                     const data = doc.data();
                     const item = { id: doc.id, ...data };
-                    
-                    if (item.replyTo) {
-                        replies[item.replyTo] = item;
-                    } else {
-                        parents.push(item);
-                    }
+                    if (item.replyTo) { replies[item.replyTo] = item; } else { parents.push(item); }
                 });
 
                 parents.forEach(c => {
                     const isOwner = auth.currentUser && c.userId === auth.currentUser.uid;
                     const deleteBtn = isOwner ? `<i class="fas fa-trash comment-delete" onclick="deleteComment('${contentId}', '${c.id}')"></i>` : '';
                     const time = c.timestamp ? new Date(c.timestamp.toDate()).toLocaleDateString() : '';
-                    
                     let replyHtml = '';
                     if (replies[c.id]) {
                         const r = replies[c.id];
-                        replyHtml = `
-                            <div class="admin-reply-container">
-                                <div class="admin-badge"><i class="fas fa-shield-alt"></i> ZERO5YT Response</div>
-                                <div style="color:#eee;">${r.text}</div>
-                            </div>
-                        `;
+                        replyHtml = `<div class="admin-reply-container"><div class="admin-badge"><i class="fas fa-shield-alt"></i> ZERO5YT Response</div><div style="color:#eee;">${r.text}</div></div>`;
                     }
-
-                    list.innerHTML += `
-                        <div class="comment-item">
-                            <div class="comment-header">
-                                <span class="comment-user">${c.userName}</span>
-                                <span><span class="comment-time">${time}</span>${deleteBtn}</span>
-                            </div>
-                            <div class="comment-text">${c.text}</div>
-                            ${replyHtml} 
-                        </div>
-                    `;
+                    list.innerHTML += `<div class="comment-item"><div class="comment-header"><span class="comment-user">${c.userName}</span><span><span class="comment-time">${time}</span>${deleteBtn}</span></div><div class="comment-text">${c.text}</div>${replyHtml}</div>`;
                 });
             });
         }
@@ -871,29 +823,15 @@
         }
 
         function incrementViewCount(item) {
-            // Optimistic update: Update local data immediately so it feels fast
-            if(item.views === undefined) item.views = 0;
-            item.views++;
-            
-            // Update Modal UI immediately if open
-            const modalTitle = document.getElementById('modal-title');
-            if(modalTitle && modalTitle.innerText === item.title) {
-                 const views = formatViews(item.views);
-                 document.getElementById('modal-tags').innerHTML = `<span>${item.releaseYear||'2023'}</span> <span>${item.genre||'Action'}</span> <span><i class="fas fa-eye"></i> ${views}</span>`;
-            }
-
-            // Database update
             const path = item.type === 'movie' ? `movies/${item.id}/views` : `series/${item.id}/views`;
             const viewRef = ref(db, path);
             runTransaction(viewRef, (currentViews) => { return (currentViews || 0) + 1; });
         }
 
-        // --- UPDATED TRYWATCH FUNCTION WITH EPISODE 1 FREE LOGIC ---
         window.tryWatch = (itemOrId, url=null, epIndex=-1) => {
             let item = (typeof itemOrId === 'string') ? allContent.find(c => c.id === itemOrId) : itemOrId;
             if (!item) return;
             
-            // If clicking main button on series without playing directly
             if (item.type === 'series' && !url && epIndex === -1) {
                  document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
                  return;
@@ -901,32 +839,24 @@
 
             const videoUrl = url || item.videoUrl;
             const owned = userProfile.purchasedContent?.includes(item.id) || !item.isPaid;
-
-            // LOGIC: Payagan kung (Owned) OR (Series at Episode 1)
             const isFreeEpisode = (item.type === 'series' && item.isPaid && epIndex === 0);
 
             if(owned || isFreeEpisode) { 
                 addToHistory(item); 
-                
-                // Show ads if content is Free OR if it's the Free Episode 1
                 if (!item.isPaid || isFreeEpisode) {
-                    window.open(DIRECT_AD_LINK, '_blank'); // Open Ad
-                    
+                    window.open(DIRECT_AD_LINK, '_blank'); 
                     if(videoUrl) { 
                         incrementViewCount(item); 
                         setTimeout(() => { launchPlayerActivity(item.title, videoUrl); }, 2000); 
                     }
                     else if (item.type === 'series') document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
                 } else {
-                    // Paid & Owned content
                     if(videoUrl) { incrementViewCount(item); launchPlayerActivity(item.title, videoUrl); }
                     else if (item.type === 'series') document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
                 }
             }
             else {
-                // PAYMENT LOGIC (Triggered for Movies or Series Ep 2+)
                 const currentBal = parseFloat(userProfile.balance) || 0;
-                
                 let promptMsg = `Purchase access to "${item.title}" for ₱${WATCH_COST.toFixed(2)}?`;
                 if(item.type === 'series') promptMsg = `Unlock all episodes of "${item.title}" for ₱${WATCH_COST.toFixed(2)}?`;
 
@@ -949,7 +879,7 @@
                             });
                             
                             renderHome(); 
-                            openDetails(item.id); // Refresh modal to unlock icons
+                            openDetails(item.id); 
                             addToHistory(item); 
                             
                             if(videoUrl) { incrementViewCount(item); launchPlayerActivity(item.title, videoUrl); }
@@ -965,17 +895,12 @@
 
         let currentStreamUrl = "";
         
-        // --- UPDATED LAUNCHPLAYER TO AUTO-CONVERT YOUTUBE LINKS ---
         async function launchPlayerActivity(title, url) {
             let finalUrl = url;
-
-            // FIX: Convert YouTube 'watch' links to 'embed' links automatically
             if (url.includes('youtube.com') || url.includes('youtu.be')) {
-                // Extract video ID using RegEx
                 const regExp = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
                 const match = url.match(regExp);
                 if (match && match[1]) {
-                    // Create new Embed URL
                     finalUrl = `https://www.youtube.com/embed/${match[1]}?autoplay=1&enablejsapi=1`;
                 }
             }
@@ -1009,11 +934,10 @@
         }
         window.refreshPlayer = () => { const iframe = document.getElementById('player-iframe'); iframe.src = 'about:blank'; setTimeout(() => iframe.src = currentStreamUrl, 200); }
 
-        // --- USER CHAT SYSTEM ---
         window.openChatModal = () => { 
             document.getElementById('chat-modal').classList.add('open'); 
             document.getElementById('chat-modal-title').innerText = "Admin Support";
-            currentChatUserId = auth.currentUser.uid; // Set current user context
+            currentChatUserId = auth.currentUser.uid; 
             loadMessages(auth.currentUser.uid);
         }
         
@@ -1039,10 +963,8 @@
             const sender = (auth.currentUser.uid === ADMIN_UID && currentChatUserId !== ADMIN_UID) ? 'admin' : 'user';
             const targetUid = (sender === 'admin') ? currentChatUserId : auth.currentUser.uid;
 
-            // 1. Add to thread
             await addDoc(collection(firestore, `messages/${targetUid}/thread`), { text:txt, sender:sender, timestamp:serverTimestamp() });
             
-            // 2. Update Admin Inbox (Only if User sends)
             if(sender === 'user') {
                 await setDoc(doc(firestore, "admin_inbox", targetUid), {
                     userId: targetUid,
@@ -1062,13 +984,32 @@
         window.showForgotPass = () => { document.querySelectorAll('.auth-form').forEach(f=>f.classList.remove('active')); document.getElementById('forgot-form').classList.add('active'); }
         window.closeModal = () => document.getElementById('details-modal').classList.remove('open');
         window.openWalletModal = () => document.getElementById('wallet-modal').classList.add('open');
+        window.openTutorialModal = () => document.getElementById('tutorial-modal').classList.add('open');
         window.showToast = (m) => { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+        
+        window.openLibraryModal = () => {
+            const modal = document.getElementById('library-modal');
+            modal.classList.add('open');
+            const grid = document.getElementById('grid-library');
+            grid.innerHTML = '';
+            
+            const purchasedIds = userProfile.purchasedContent || [];
+            
+            if(purchasedIds.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; color:#777; width:100%; margin-top:20px;">No purchased content yet.</p>';
+                return;
+            }
+
+            const myMovies = allContent.filter(item => purchasedIds.includes(item.id));
+            myMovies.forEach(movie => {
+                grid.innerHTML += createCard(movie);
+            });
+        }
         
         function updateFavBtn(id) { const i=document.querySelector('#modal-fav-btn i'); i.className=userFavorites.includes(id)?'fas fa-heart':'far fa-heart'; i.style.color=userFavorites.includes(id)?'red':'white'; }
         function toggleFav(id) { userFavorites.includes(id)?userFavorites=userFavorites.filter(x=>x!==id):userFavorites.push(id); localStorage.setItem('cinehubFavs',JSON.stringify(userFavorites)); updateFavBtn(id); if(document.getElementById('view-favorites').classList.contains('active')) renderFavorites(); }
         function renderFavorites() { const g=document.getElementById('grid-favorites'); g.innerHTML=''; const f=allContent.filter(c=>userFavorites.includes(c.id)); f.length?f.forEach(c=>g.innerHTML+=createCard(c)):g.innerHTML='<p style="color:#777;">Empty list</p>'; }
         
-        // --- PAYMENT LOGIC ---
         window.selectPaymentMethod = (method) => {
             document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
             document.querySelectorAll('.pay-details').forEach(d => d.classList.remove('active'));
@@ -1106,7 +1047,6 @@
             document.getElementById('request-balance-form').reset();
         });
 
-        // --- ADMIN DASHBOARD ---
         window.openAdminPanel = () => {
             const modal = document.createElement('div');
             modal.className = 'modal-overlay open';
@@ -1199,16 +1139,11 @@
         }
 
         window.openAdminChat = (targetUid, targetName) => {
-            currentChatUserId = targetUid; // Set target for admin
-            document.getElementById('admin-modal').remove(); // Close dashboard
-            
-            // Open chat modal
+            currentChatUserId = targetUid; 
+            document.getElementById('admin-modal').remove(); 
             document.getElementById('chat-modal').classList.add('open');
             document.getElementById('chat-modal-title').innerText = "Chat with " + targetName;
-            
-            // Mark as read
             updateDoc(doc(firestore, "admin_inbox", targetUid), { unread: false });
-            
             loadMessages(targetUid);
         };
 
