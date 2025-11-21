@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Download CineHub - Premium Movie App</title>
     
-    <!-- Icon (Hahanapin nito ang icon.png sa repository mo) -->
+    <!-- Icon -->
     <link rel="icon" type="image/png" href="icon.png">
     
     <!-- Fonts & Icons -->
@@ -17,7 +17,6 @@
             --primary: #ff0a16;
             --primary-dark: #b0000a;
             --dark: #0a0a0a;
-            --glass: rgba(20, 20, 20, 0.85);
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
@@ -28,14 +27,15 @@
             justify-content: center;
             align-items: center;
             background-color: var(--dark);
-            overflow: hidden;
+            overflow-x: hidden;
             position: relative;
             color: white;
+            padding: 20px 0;
         }
 
         /* --- ANIMATED BACKGROUND --- */
         .bg-image {
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.9)), url('https://assets.nflxext.com/ffe/siteui/vlv3/f841d4c7-10e1-40af-bcae-07a3f8dc141a/f6d7434e-d6de-4185-a6d4-c77a2d08737b/US-en-20220502-popsignuptwoweeks-perspective_alpha_website_medium.jpg');
             background-size: cover;
@@ -51,10 +51,10 @@
 
         /* --- GLASS CARD CONTAINER --- */
         .container {
-            background: rgba(15, 15, 15, 0.75);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            padding: 45px 30px;
+            background: rgba(15, 15, 15, 0.85);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            padding: 40px 25px;
             border-radius: 20px;
             text-align: center;
             width: 90%;
@@ -64,63 +64,102 @@
             animation: floatIn 0.8s ease-out;
             position: relative;
             z-index: 10;
+            margin-top: auto;
+            margin-bottom: auto;
         }
 
         /* --- LOGO & TEXT --- */
         .logo {
-            font-size: 3rem;
+            font-size: 2.8rem;
             font-weight: 800;
             color: var(--primary);
             text-transform: uppercase;
             letter-spacing: 2px;
-            margin-bottom: 5px;
+            margin-bottom: 0;
             text-shadow: 0 0 25px rgba(255, 10, 22, 0.6);
         }
 
         .subtitle {
             color: #ccc;
-            font-size: 0.9rem;
-            margin-bottom: 30px;
+            font-size: 0.85rem;
+            margin-bottom: 20px;
             font-weight: 400;
             opacity: 0.9;
+        }
+
+        /* --- VIDEO CONTAINER --- */
+        .tutorial-label {
+            font-size: 0.75rem;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            text-align: left;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            border: 2px solid rgba(255, 10, 22, 0.3);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         /* --- BUTTONS --- */
         .btn-group {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
 
         .btn {
             text-decoration: none;
-            padding: 16px;
-            border-radius: 12px;
+            padding: 14px;
+            border-radius: 10px;
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 0.95rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 10px;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
             position: relative;
             overflow: hidden;
             border: none;
+            cursor: pointer;
         }
 
         .btn:hover {
-            transform: translateY(-4px) scale(1.02);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
         }
         .btn:active { transform: scale(0.98); }
 
-        /* Button Styles */
+        /* Button Colors */
         .btn-main {
             background: linear-gradient(45deg, #ff0a16, #b20710);
             color: white;
-            box-shadow: 0 5px 15px rgba(255, 10, 22, 0.4);
+            box-shadow: 0 4px 15px rgba(255, 10, 22, 0.3);
+            font-size: 1.1rem;
         }
-        .btn-main:hover { box-shadow: 0 0 25px rgba(255, 10, 22, 0.7); }
+        .btn-main:hover { box-shadow: 0 0 25px rgba(255, 10, 22, 0.6); }
 
         .btn-play { background: white; color: black; }
         .btn-apk { background: linear-gradient(45deg, #2ecc71, #27ae60); color: white; }
@@ -138,20 +177,17 @@
 
         /* --- FOOTER --- */
         footer {
-            margin-top: 35px;
-            font-size: 0.75rem;
+            margin-top: 30px;
+            font-size: 0.7rem;
             color: #666;
             border-top: 1px solid rgba(255,255,255,0.1);
             padding-top: 15px;
-            line-height: 1.6;
+            line-height: 1.5;
         }
         
         .developer {
             color: #888;
             font-weight: 500;
-            font-size: 0.85rem;
-            margin-top: 5px;
-            display: block;
         }
 
         @keyframes floatIn {
@@ -159,6 +195,15 @@
             to { opacity: 1; transform: translateY(0); }
         }
     </style>
+
+    <!-- SMART LINK SCRIPT -->
+    <script>
+        // Function to open Smart Link in new tab when user clicks download
+        function triggerSmartLink() {
+            const smartLink = "https://rarelywithinlull.com/tuwnc1ge?key=aa75acf007ec2ab9265e9dae93be2bdb";
+            window.open(smartLink, '_blank');
+        }
+    </script>
 </head>
 <body>
 
@@ -170,25 +215,42 @@
         <div class="logo">CineHub</div>
         <p class="subtitle">Watch Movies & Series for Free</p>
 
+        <!-- VIDEO TUTORIAL SECTION -->
+        <div class="tutorial-section">
+            <span class="tutorial-label">
+                <i class="fas fa-info-circle" style="color: var(--primary);"></i> Installation Guide
+            </span>
+            <div class="video-wrapper">
+                <iframe 
+                    src="https://www.blogger.com/video.g?token=AD6v5dx1yBIodfR4yAMzTd0a9l9Rxpz0Z5M5J4K83-uYJW9e95p5UZjseFUP6A_pvnBeN-gqF_fDO80AUm1-c_8jxZuoFuvFzWnQ6AqqBqydXC5f9SWPcMHtRoUVJeE_m4AiCqpRKEdE" 
+                    title="Installation Tutorial" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                </iframe>
+            </div>
+        </div>
+
+        <!-- BUTTONS (Nilagyan ng onclick="triggerSmartLink()" para lumabas ads mo) -->
         <div class="btn-group">
             
             <!-- DIRECT DOWNLOAD -->
-            <a href="https://rshrt.com/CineHubPro" class="btn btn-main">
+            <a href="https://rshrt.com/CineHubPro" onclick="triggerSmartLink()" class="btn btn-main">
                 <i class="fas fa-cloud-arrow-down"></i> Download App Now
             </a>
 
             <!-- GOOGLE PLAY STORE -->
-            <a href="https://rshrt.com/CineHubPro" class="btn btn-play">
+            <a href="https://rshrt.com/CineHubPro" onclick="triggerSmartLink()" class="btn btn-play">
                 <i class="fab fa-google-play" style="color:#ea4335;"></i> Get on Play Store
             </a>
 
             <!-- APKPURE -->
-            <a href="https://rshrt.com/CineHubPro" class="btn btn-apk">
-                <i class="fas fa-robot"></i> Download via APKPure
+            <a href="https://rshrt.com/CineHubPro" onclick="triggerSmartLink()" class="btn btn-apk">
+                <i class="fas fa-android"></i> Download via APKPure
             </a>
 
             <!-- VISIT WEBSITE -->
-            <a href="https://rshrt.com/CineHubPro" class="btn btn-site">
+            <a href="https://rshrt.com/CineHubPro" onclick="triggerSmartLink()" class="btn btn-site">
                 <i class="fas fa-globe"></i> Visit Official Site
             </a>
 
@@ -200,8 +262,8 @@
         </footer>
     </div>
 
-    <!-- YOUR ADS SCRIPT -->
-    <script type='text/javascript' src='//pl28097228.effectivegatecpm.com/fc/08/65/fc086515f18deaf71be787e5c5a45dce.js'></script>
+    <!-- ADSTERRA SOCIAL BAR SCRIPT -->
+    <script type='text/javascript' src='//rarelywithinlull.com/fc/08/65/fc086515f18deaf71be787e5c5a45dce.js'></script>
 
 </body>
 </html>
