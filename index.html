@@ -351,10 +351,19 @@
             <h2 id="modal-title">Title</h2>
             <div id="modal-tags" style="font-size:0.8rem; color:#ccc; margin-bottom:10px;"></div>
             <div id="modal-desc" style="font-size:0.9rem; color:#bbb; clear:both;"></div>
+            
+            <!-- MODIFIED ACTION ROW FOR TRAILER + MOVIE BUTTONS -->
             <div class="action-row">
-                <button id="modal-play-btn" class="btn-primary" style="flex:2"><i class="fas fa-play"></i> Watch</button>
-                <button id="modal-fav-btn" class="btn-primary" style="flex:1; background:#333;"><i class="far fa-heart"></i></button>
+                <!-- Trailer Button (Added) -->
+                <button id="modal-trailer-btn" class="btn-primary" style="flex:1; background:#555; display:none; margin-right:5px;"><i class="fas fa-film"></i> Trailer</button>
+                
+                <!-- Main Watch/Buy Button -->
+                <button id="modal-play-btn" class="btn-primary" style="flex:1.5"><i class="fas fa-play"></i> Watch</button>
+                
+                <!-- Fav Button -->
+                <button id="modal-fav-btn" class="btn-primary" style="flex:0.5; background:#333;"><i class="far fa-heart"></i></button>
             </div>
+
             <div id="series-episodes-area" style="margin-top:20px; display:none;">
                 <h4 style="color:var(--primary); border-bottom:1px solid #333; padding-bottom:5px;">Episodes</h4>
                 <div id="episodes-list" style="display:flex; flex-direction:column; gap:10px; margin-top:10px;"></div>
@@ -650,6 +659,7 @@
             return `<div class="movie-card" onclick="openDetails('${item.id}')">${badge}<img src="${item.posterUrl}" loading="lazy">${lockHtml}<div class="views-badge"><i class="fas fa-eye"></i> ${views}</div><div class="card-overlay"><i class="fas fa-play" style="color:white; font-size:2rem;"></i></div></div>`;
         }
 
+        // --- UPDATED OPEN DETAILS FUNCTION (TRAILER + FULL MOVIE LOGIC) ---
         window.openDetails = (id) => {
             const item = allContent.find(c => c.id === id); if(!item) return;
             document.getElementById('modal-poster').src = item.posterUrl;
@@ -657,28 +667,66 @@
             document.getElementById('modal-desc').innerText = item.description;
             const views = formatViews(item.views || 0);
             document.getElementById('modal-tags').innerHTML = `<span>${item.releaseYear||'2023'}</span> <span>${item.genre||'Action'}</span> <span><i class="fas fa-eye"></i> ${views}</span>`;
+            
+            // --- TRAILER BUTTON LOGIC ---
+            const trailerBtn = document.getElementById('modal-trailer-btn');
+            // If trailerUrl exists in database
+            if(item.trailerUrl && item.trailerUrl.trim() !== "") {
+                trailerBtn.style.display = 'block';
+                trailerBtn.onclick = () => watchTrailer(item); // Watch Trailer Function
+            } else {
+                trailerBtn.style.display = 'none';
+            }
+
+            // --- MAIN BUTTON (FULL MOVIE/SERIES) LOGIC ---
             const playBtn = document.getElementById('modal-play-btn');
+            
+            // Check ownership
             const owned = userProfile.purchasedContent?.includes(item.id) || !item.isPaid;
             
             if (owned) {
-                playBtn.innerHTML = !item.isPaid ? `<i class="fas fa-ad"></i> Watch Ad to Play` : `<i class="fas fa-play"></i> Watch Now`;
+                // OWNED or FREE
+                // If FREE and not owned (meaning purely free), show "Watch Ad to Play" (unless bought)
+                const label = !item.isPaid ? `<i class="fas fa-ad"></i> Watch Ad to Play` : `<i class="fas fa-play"></i> Watch Full Movie`;
+                playBtn.innerHTML = label;
+                playBtn.onclick = () => {
+                    if (item.type === 'series') document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
+                    else tryWatch(item);
+                };
             } else {
-                playBtn.innerHTML = `<i class="fas fa-lock"></i> Buy ₱${WATCH_COST.toFixed(2)}`;
+                // PAID and NOT OWNED
+                if(item.type === 'series') {
+                     // Series Strategy: Ep 1 Free, Rest Paid
+                     playBtn.innerHTML = `<i class="fas fa-lock"></i> Unlock All ₱${WATCH_COST.toFixed(2)}`;
+                     playBtn.onclick = () => {
+                         tryWatch(item, null, 1); // Force index 1 triggers buy logic
+                     };
+                } else {
+                    // Movie Strategy: Pay to watch Full Movie
+                    playBtn.innerHTML = `<i class="fas fa-lock"></i> Buy ₱${WATCH_COST.toFixed(2)}`;
+                    playBtn.onclick = () => tryWatch(item);
+                }
             }
-
-            playBtn.onclick = () => {
-                if(item.type === 'series' && !owned && item.isPaid) tryWatch(item);
-                else if (item.type === 'series') document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
-                else tryWatch(item);
-            };
 
             const epArea = document.getElementById('series-episodes-area');
             if(item.type === 'series' && item.episodes) {
                 epArea.style.display = 'block';
-                document.getElementById('episodes-list').innerHTML = item.episodes.map(ep => 
-                    `<div style="background:#222; padding:10px; border-radius:5px; display:flex; justify-content:space-between; cursor:pointer;" onclick="tryWatch('${item.id}', '${ep.videoUrl}')"><span>${ep.episodeNumber}. ${ep.episodeTitle}</span> <i class="fas fa-play-circle"></i></div>`
-                ).join('');
+                
+                // EPISODE LIST RENDERING (Kept as is)
+                document.getElementById('episodes-list').innerHTML = item.episodes.map((ep, index) => {
+                    const isLocked = item.isPaid && !owned && index > 0;
+                    const icon = isLocked ? '<i class="fas fa-lock" style="color:#e74c3c;"></i>' : '<i class="fas fa-play-circle" style="color:var(--primary);"></i>';
+                    const titleColor = isLocked ? '#777' : '#fff';
+                    const badge = (index === 0 && item.isPaid && !owned) ? '<span style="font-size:0.6rem; background:#27ae60; padding:2px 4px; border-radius:2px; margin-left:5px;">FREE PREVIEW</span>' : '';
+
+                    return `<div style="background:#222; padding:10px; border-radius:5px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; border:1px solid ${isLocked ? '#333' : '#444'}" 
+                            onclick="tryWatch('${item.id}', '${ep.videoUrl}', ${index})">
+                                <span style="color:${titleColor}; font-size:0.9rem;">${ep.episodeNumber}. ${ep.episodeTitle} ${badge}</span> 
+                                ${icon}
+                            </div>`;
+                }).join('');
             } else { epArea.style.display = 'none'; }
+            
             updateFavBtn(id);
             document.getElementById('modal-fav-btn').onclick = () => toggleFav(id);
             
@@ -686,6 +734,21 @@
             document.getElementById('comment-form').dataset.id = id;
             document.getElementById('details-modal').classList.add('open');
         }
+
+        // --- NEW FUNCTION: WATCH TRAILER (FREE + ADS) ---
+        window.watchTrailer = (item) => {
+            // 1. Show Ad
+            window.open(DIRECT_AD_LINK, '_blank');
+            
+            // 2. Play Trailer after delay (Simulating Ad view)
+            // Note: Since we can't detect when they close the ad tab easily, we just play immediately in app context
+            // or start playing after they return. Here we just launch it.
+            
+            setTimeout(() => {
+                // Use existing player to play trailer
+                launchPlayerActivity(item.title + " (Trailer)", item.trailerUrl);
+            }, 1000);
+        };
 
         // --- UPDATED COMMENT LOADER WITH NESTED REPLY SUPPORT ---
         function loadComments(contentId) {
@@ -702,7 +765,6 @@
                     return;
                 }
 
-                // 1. Separate Parents and Replies
                 let parents = [];
                 let replies = {};
 
@@ -711,27 +773,23 @@
                     const item = { id: doc.id, ...data };
                     
                     if (item.replyTo) {
-                        // This is a reply
                         replies[item.replyTo] = item;
                     } else {
-                        // This is a main comment
                         parents.push(item);
                     }
                 });
 
-                // 2. Render Parents and attach Replies if they exist
                 parents.forEach(c => {
                     const isOwner = auth.currentUser && c.userId === auth.currentUser.uid;
                     const deleteBtn = isOwner ? `<i class="fas fa-trash comment-delete" onclick="deleteComment('${contentId}', '${c.id}')"></i>` : '';
                     const time = c.timestamp ? new Date(c.timestamp.toDate()).toLocaleDateString() : '';
                     
-                    // Check if this comment has an admin reply
                     let replyHtml = '';
                     if (replies[c.id]) {
                         const r = replies[c.id];
                         replyHtml = `
                             <div class="admin-reply-container">
-                                <div class="admin-badge"><i class="fas fa-shield-alt"></i> Admin Response</div>
+                                <div class="admin-badge"><i class="fas fa-shield-alt"></i> ZERO5YT Response</div>
                                 <div style="color:#eee;">${r.text}</div>
                             </div>
                         `;
@@ -775,27 +833,50 @@
             runTransaction(viewRef, (currentViews) => { return (currentViews || 0) + 1; });
         }
 
-        window.tryWatch = (itemOrId, url=null) => {
+        // --- UPDATED TRYWATCH FUNCTION WITH EPISODE 1 FREE LOGIC ---
+        window.tryWatch = (itemOrId, url=null, epIndex=-1) => {
             let item = (typeof itemOrId === 'string') ? allContent.find(c => c.id === itemOrId) : itemOrId;
             if (!item) return;
+            
+            // If clicking main button on series without playing directly
+            if (item.type === 'series' && !url && epIndex === -1) {
+                 document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
+                 return;
+            }
+
             const videoUrl = url || item.videoUrl;
             const owned = userProfile.purchasedContent?.includes(item.id) || !item.isPaid;
 
-            if(owned) { 
+            // LOGIC: Payagan kung (Owned) OR (Series at Episode 1)
+            const isFreeEpisode = (item.type === 'series' && item.isPaid && epIndex === 0);
+
+            if(owned || isFreeEpisode) { 
                 addToHistory(item); 
-                if (!item.isPaid) {
-                    window.open(DIRECT_AD_LINK, '_blank'); 
-                    if(videoUrl) { incrementViewCount(item); setTimeout(() => { launchPlayerActivity(item.title, videoUrl); }, 2000); }
+                
+                // Show ads if content is Free OR if it's the Free Episode 1
+                if (!item.isPaid || isFreeEpisode) {
+                    window.open(DIRECT_AD_LINK, '_blank'); // Open Ad
+                    
+                    if(videoUrl) { 
+                        incrementViewCount(item); 
+                        setTimeout(() => { launchPlayerActivity(item.title, videoUrl); }, 2000); 
+                    }
                     else if (item.type === 'series') document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
                 } else {
+                    // Paid & Owned content
                     if(videoUrl) { incrementViewCount(item); launchPlayerActivity(item.title, videoUrl); }
                     else if (item.type === 'series') document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
                 }
             }
             else {
+                // PAYMENT LOGIC (Triggered for Movies or Series Ep 2+)
                 const currentBal = parseFloat(userProfile.balance) || 0;
+                
+                let promptMsg = `Purchase access to "${item.title}" for ₱${WATCH_COST.toFixed(2)}?`;
+                if(item.type === 'series') promptMsg = `Unlock all episodes of "${item.title}" for ₱${WATCH_COST.toFixed(2)}?`;
+
                 if(currentBal >= WATCH_COST) {
-                    if(confirm(`Purchase access to "${item.title}" for ₱${WATCH_COST.toFixed(2)}?`)) {
+                    if(confirm(promptMsg)) {
                         const newBal = currentBal - WATCH_COST;
                         updateDoc(doc(firestore, "users", auth.currentUser.uid), { balance: newBal, purchasedContent: arrayUnion(item.id) })
                         .then(() => { 
@@ -803,14 +884,27 @@
                             userProfile.balance = newBal;
                             if(!userProfile.purchasedContent) userProfile.purchasedContent = [];
                             userProfile.purchasedContent.push(item.id);
-                            addDoc(collection(firestore, "purchases"), { userId: auth.currentUser.uid, userEmail: auth.currentUser.email, contentTitle: item.title, amount: WATCH_COST, timestamp: serverTimestamp() });
-                            renderHome(); openDetails(item.id); addToHistory(item); 
+                            
+                            addDoc(collection(firestore, "purchases"), { 
+                                userId: auth.currentUser.uid, 
+                                userEmail: auth.currentUser.email, 
+                                contentTitle: item.title, 
+                                amount: WATCH_COST, 
+                                timestamp: serverTimestamp() 
+                            });
+                            
+                            renderHome(); 
+                            openDetails(item.id); // Refresh modal to unlock icons
+                            addToHistory(item); 
+                            
                             if(videoUrl) { incrementViewCount(item); launchPlayerActivity(item.title, videoUrl); }
-                            else showToast("Unlocked! Select an episode.");
                         })
                         .catch(err => showToast("Transaction failed: " + err.message));
                     }
-                } else { showToast('Insufficient Balance. Please Top-up.'); openWalletModal(); }
+                } else { 
+                    showToast('Insufficient Balance for this episode/movie.'); 
+                    openWalletModal(); 
+                }
             }
         }
 
@@ -922,7 +1016,6 @@
             const method = document.getElementById('selected-method').value;
             if(!amt || !refNum) return;
             
-            // FIX: Added userProfile.name to userName to avoid 'Undefined'
             await addDoc(collection(firestore,"balance_requests"),{
                 userId:auth.currentUser.uid, 
                 userEmail: auth.currentUser.email,
@@ -939,7 +1032,7 @@
             document.getElementById('request-balance-form').reset();
         });
 
-        // --- UPDATED ADMIN DASHBOARD ---
+        // --- ADMIN DASHBOARD ---
         window.openAdminPanel = () => {
             const modal = document.createElement('div');
             modal.className = 'modal-overlay open';
@@ -984,7 +1077,6 @@
                 snap.forEach(d => {
                     const data = d.data();
                     const time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : '';
-                    // FIX: Using userName field
                     list.innerHTML += `
                         <div style="background:#222; padding:15px; border-radius:8px; border:1px solid #333;">
                             <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
@@ -1006,7 +1098,6 @@
             });
         }
 
-        // --- NEW: ADMIN INBOX LOGIC ---
         function loadAdminInbox() {
             const list = document.getElementById('admin-inbox-list');
             const q = query(collection(firestore, "admin_inbox"), orderBy("timestamp", "desc"));
@@ -1070,7 +1161,6 @@
 
         document.getElementById('login-form').addEventListener('submit', e=>{e.preventDefault(); signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value).catch(e=>showToast(e.message))});
         
-        // UPDATED REGISTRATION TO ENSURE NAME SAVING
         document.getElementById('register-form').addEventListener('submit', e=>{
             e.preventDefault();
             const name = document.getElementById('reg-name').value;
@@ -1079,7 +1169,6 @@
             
             createUserWithEmailAndPassword(auth, email, pass)
             .then(c => {
-                // FIX: Wait for setDoc to ensure data exists before routing
                 setDoc(doc(firestore,"users",c.user.uid), { name: name, email: email, balance: 0, purchasedContent: [] })
                 .then(() => {
                      showToast("Registered successfully!");
