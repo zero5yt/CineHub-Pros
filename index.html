@@ -307,8 +307,22 @@
             <div class="settings-item" onclick="openWalletModal()"><span>My Wallet</span><i class="fas fa-chevron-right"></i></div>
             <div id="pending-request-display"></div>
             <div class="settings-item" onclick="openChatModal()"><span>Message Admin</span><i class="fas fa-envelope"></i></div>
+            
+            <!-- REQUESTED: Subscribe Button (Make sure to change the HREF to your channel link) -->
+            <a href="https://youtube.com/@zero5yt?si=L2PMcKJCYZyF9rGX" target="_blank" style="text-decoration:none; color:inherit;">
+                <div class="settings-item">
+                    <span>Subscribe YouTube ZERO5YT</span><i class="fab fa-youtube" style="color: red;"></i>
+                </div>
+            </a>
+
             <div class="settings-item" onclick="logout()" style="color: var(--primary);"><span>Logout</span><i class="fas fa-sign-out-alt"></i></div>
+            
+            <!-- REQUESTED: How to use CineHub Message (Updated with POP-UP Trigger) -->
+            <div style="text-align: center; padding: 15px; font-size: 0.85rem;">
+                <a href="#" onclick="openTutorialModal()" style="color: #777; text-decoration: none;">How to use CineHub By Roderick A. Click Me?</a>
+            </div>
         </div>
+
         <nav>
             <a href="#" class="nav-item active" onclick="switchView('home', this)"><i class="fas fa-home"></i>Home</a>
             <a href="#" class="nav-item" onclick="switchView('search', this)"><i class="fas fa-search"></i>Search</a>
@@ -437,6 +451,24 @@
         </div>
     </div>
 
+    <!-- NEW TUTORIAL MODAL (Added as requested) -->
+    <div id="tutorial-modal" class="modal-overlay">
+        <div class="modal-sheet" style="height: auto; max-height: 80vh;">
+            <div style="position:absolute; top:10px; right:15px; font-size:1.5rem; color:#888; cursor:pointer;" onclick="closeTutorialModal()">&times;</div>
+            <h3 style="color:var(--primary); margin-bottom:15px;">How to use CineHub?</h3>
+            <div style="color:#ddd; font-size:0.9rem; line-height:1.6; text-align:justify;">
+                <p>How to use cinehub pro cash in? All you have to do is send at least 1 peso to the gcash or bpi number listed there and wait a moment because admin Roderick will look into it.</p>
+                <br>
+                <p>If your message has already been sent, all you need to do is enter the amount and don't forget the reference number of the message you sent because it is important.</p>
+                <br>
+                <p>Don't worry because the person who manages CineHub pro is always active, so don't worry, you can still cancel it. Just send a message to cancel and the money you paid will automatically be returned to GCash.</p>
+                <br>
+                <p>Thank you, enjoy, just request the movie you want, I'll prioritize it. The ones I collected turned out to be fake, your details are just your email, so you're safe here at Cinehub.</p>
+            </div>
+            <button class="btn-primary" onclick="closeTutorialModal()" style="margin-top:20px;">Close</button>
+        </div>
+    </div>
+
     <audio id="bg-music" src="https://github.com/zero5yt/Mp3/raw/refs/heads/main/Ako%20si%20Zero5YT.mp3" loop></audio>
 
     <script type='text/javascript' src='//pl28097228.effectivegatecpm.com/fc/08/65/fc086515f18deaf71be787e5c5a45dce.js'></script>
@@ -467,6 +499,10 @@
         // Global vars for admin chat
         let currentChatUserId = null;
         let chatUnsubscribe = null;
+
+        // --- TUTORIAL MODAL LOGIC ---
+        window.openTutorialModal = () => document.getElementById('tutorial-modal').classList.add('open');
+        window.closeTutorialModal = () => document.getElementById('tutorial-modal').classList.remove('open');
 
         onAuthStateChanged(auth, (user) => {
             setTimeout(() => {
@@ -741,9 +777,6 @@
             window.open(DIRECT_AD_LINK, '_blank');
             
             // 2. Play Trailer after delay (Simulating Ad view)
-            // Note: Since we can't detect when they close the ad tab easily, we just play immediately in app context
-            // or start playing after they return. Here we just launch it.
-            
             setTimeout(() => {
                 // Use existing player to play trailer
                 launchPlayerActivity(item.title + " (Trailer)", item.trailerUrl);
@@ -909,17 +942,36 @@
         }
 
         let currentStreamUrl = "";
+        
+        // --- UPDATED LAUNCHPLAYER TO AUTO-CONVERT YOUTUBE LINKS ---
         async function launchPlayerActivity(title, url) {
-            currentStreamUrl = url; bgMusic.pause();
+            let finalUrl = url;
+
+            // FIX: Convert YouTube 'watch' links to 'embed' links automatically
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                // Extract video ID using RegEx
+                const regExp = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+                const match = url.match(regExp);
+                if (match && match[1]) {
+                    // Create new Embed URL
+                    finalUrl = `https://www.youtube.com/embed/${match[1]}?autoplay=1&enablejsapi=1`;
+                }
+            }
+
+            currentStreamUrl = finalUrl; 
+            bgMusic.pause();
+            
             document.getElementById('app-activity').style.display = 'none'; 
             document.getElementById('player-activity').style.display = 'flex';
             document.getElementById('player-title-text').innerText = title;
             document.getElementById('player-iframe').removeAttribute('sandbox'); 
-            document.getElementById('player-iframe').src = url;
+            document.getElementById('player-iframe').src = finalUrl;
+            
             history.pushState({ page: 'player' }, "Player", "#player");
             const elem = document.getElementById('player-activity'); 
             try { if (elem.requestFullscreen) await elem.requestFullscreen(); } catch(e){}
         }
+
         window.toggleFullscreen = () => {
             const elem = document.getElementById('player-activity');
             if (!document.fullscreenElement) { if (elem.requestFullscreen) elem.requestFullscreen(); } else { if (document.exitFullscreen) document.exitFullscreen(); }
