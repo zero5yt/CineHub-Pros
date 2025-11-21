@@ -78,9 +78,12 @@
         .vp-content { position: absolute; bottom: 20px; left: 20px; z-index: 3; }
         .vp-content h2 { font-size: 1.5rem; text-shadow: 0 2px 4px rgba(0,0,0,0.8); margin-bottom: 10px; }
 
-        .filter-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
-        .filter-tab { background: transparent; border: none; color: var(--text-dim); font-size: 0.9rem; padding-bottom: 5px; cursor: pointer; transition: 0.3s; }
+        /* SCROLLABLE FILTERS */
+        .filter-container { overflow-x: auto; white-space: nowrap; padding: 0 15px; margin-bottom: 20px; -webkit-overflow-scrolling: touch; }
+        .filter-tabs { display: inline-flex; gap: 15px; }
+        .filter-tab { background: transparent; border: none; color: var(--text-dim); font-size: 0.9rem; padding-bottom: 5px; cursor: pointer; transition: 0.3s; flex-shrink: 0; }
         .filter-tab.active { color: var(--primary); border-bottom: 2px solid var(--primary); font-weight: 600; }
+        .filter-container::-webkit-scrollbar { display: none; } /* Hide scrollbar */
 
         .section-title { padding: 0 20px; margin-bottom: 15px; font-size: 1.1rem; border-left: 4px solid var(--primary); padding-left: 10px; }
         .movies-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; padding: 0 15px; margin-bottom: 30px; }
@@ -94,7 +97,7 @@
         .movie-card:hover .card-overlay { opacity: 1; }
         .lock-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; color: rgba(255,255,255,0.8); text-shadow: 0 0 10px rgba(0,0,0,0.9); z-index: 3; }
         
-        /* --- NEW HISTORY STYLE --- */
+        /* --- HISTORY STYLE --- */
         #history-section { display: none; padding: 0 15px; margin-bottom: 20px; } 
         #grid-history { display: flex; flex-direction: column; gap: 8px; }
         .history-mini-card { 
@@ -150,6 +153,30 @@
         .comment-text { font-size: 0.9rem; color: #eee; word-wrap: break-word; }
         .comment-delete { color: #e74c3c; cursor: pointer; margin-left: 10px; }
         
+        /* --- NESTED REPLY STYLES --- */
+        .comment-container { position: relative; }
+        .admin-reply-container {
+            margin-left: 20px;
+            margin-top: 8px;
+            padding: 10px;
+            background: #1f1f1f;
+            border-left: 3px solid var(--primary);
+            border-radius: 0 8px 8px 0;
+            font-size: 0.85rem;
+            display: flex;
+            flex-direction: column;
+        }
+        .admin-badge {
+            background: var(--primary);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            width: fit-content;
+            margin-bottom: 5px;
+        }
+
         #comment-form { display: flex; gap: 10px; }
         #comment-input { flex-grow: 1; padding: 10px; border-radius: 20px; border: 1px solid #444; background: #111; color: white; outline: none; }
         #comment-form button { background: var(--primary); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; }
@@ -181,6 +208,16 @@
         .search-bar { width: 100%; padding: 15px; background: var(--surface); border: none; color: white; font-size: 1rem; border-bottom: 1px solid #333; position: sticky; top: 0; }
         .settings-item { padding: 15px 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
         #pending-request-display { background: #333; padding: 10px; margin-top: 10px; border-radius: 5px; font-size: 0.9rem; text-align: center; display: none; }
+
+        /* Admin Tab Styles */
+        .admin-tabs { display: flex; border-bottom: 1px solid #333; margin-bottom: 15px; }
+        .admin-tab-btn { flex: 1; background: none; border: none; color: #888; padding: 10px; cursor: pointer; }
+        .admin-tab-btn.active { color: var(--primary); border-bottom: 2px solid var(--primary); font-weight: bold; }
+        .admin-panel-view { display: none; }
+        .admin-panel-view.active { display: block; }
+        .inbox-item { background: #222; padding: 15px; margin-bottom: 8px; border-radius: 5px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+        .inbox-unread { border-left: 3px solid var(--primary); }
+
     </style>
 </head>
 <body>
@@ -238,16 +275,24 @@
         </header>
         <div id="view-home" class="view active">
             <div id="viewpager"></div>
-            <div class="filter-tabs">
-                <button class="filter-tab active" onclick="filterContent('all', this)">All</button>
-                <button class="filter-tab" onclick="filterContent('movie', this)">Movies</button>
-                <button class="filter-tab" onclick="filterContent('series', this)">Series</button>
+            
+            <!-- UPDATED FILTERS WITH NEW CATEGORIES -->
+            <div class="filter-container">
+                <div class="filter-tabs">
+                    <button class="filter-tab active" onclick="filterContent('all', this)">All</button>
+                    <button class="filter-tab" onclick="filterContent('movie', this)">Movies</button>
+                    <button class="filter-tab" onclick="filterContent('series', this)">Series</button>
+                    <button class="filter-tab" onclick="filterContent('pop', this)">Pop</button>
+                    <button class="filter-tab" onclick="filterContent('vivamax', this)">Vivamax</button>
+                    <button class="filter-tab" onclick="filterContent('tagalog', this)">Tagalog Dub</button>
+                    <button class="filter-tab" onclick="filterContent('english', this)">English</button>
+                    <button class="filter-tab" onclick="filterContent('anime', this)">Anime</button>
+                </div>
             </div>
             
-            <!-- UPDATED HISTORY SECTION (List Style) -->
             <div id="history-section">
                 <h3 class="section-title">Continue Watching</h3>
-                <div id="grid-history"></div> <!-- Removed movies-grid class -->
+                <div id="grid-history"></div> 
             </div>
 
             <h3 class="section-title">Trending</h3><div id="grid-trending" class="movies-grid"></div>
@@ -258,7 +303,6 @@
         
         <div id="view-settings" class="view">
             <div class="settings-item"><div><div style="font-weight:600;" id="setting-name">User</div><div style="font-size:0.8rem; color:#888;" id="setting-email">email</div></div></div>
-            <!-- MUSIC TOGGLE OFF BY DEFAULT -->
             <div class="settings-item"><span>Background Music</span><input type="checkbox" id="bg-music-toggle"></div>
             <div class="settings-item" onclick="openWalletModal()"><span>My Wallet</span><i class="fas fa-chevron-right"></i></div>
             <div id="pending-request-display"></div>
@@ -332,7 +376,7 @@
     <div id="chat-modal" class="modal-overlay">
         <div class="modal-sheet" style="height: 80vh; display: flex; flex-direction: column; padding: 0;">
             <div style="padding: 15px; border-bottom: 1px solid #333; display:flex; justify-content:space-between;">
-                <h3>Admin Support</h3>
+                <h3 id="chat-modal-title">Admin Support</h3>
                 <span style="font-size:1.5rem; cursor:pointer;" onclick="document.getElementById('chat-modal').classList.remove('open')">&times;</span>
             </div>
             <div id="chat-window"></div>
@@ -343,7 +387,7 @@
         </div>
     </div>
 
-    <!-- MODIFIED WALLET MODAL -->
+    <!-- WALLET MODAL -->
     <div id="wallet-modal" class="modal-overlay">
         <div class="modal-sheet">
             <div style="position:absolute; top:10px; right:15px; font-size:1.5rem; color:#888; cursor:pointer;" onclick="document.getElementById('wallet-modal').classList.remove('open')">&times;</div>
@@ -386,7 +430,6 @@
 
     <audio id="bg-music" src="https://github.com/zero5yt/Mp3/raw/refs/heads/main/Ako%20si%20Zero5YT.mp3" loop></audio>
 
-    <!-- 1. SOCIAL BAR ADS (POP-UP) -->
     <script type='text/javascript' src='//pl28097228.effectivegatecpm.com/fc/08/65/fc086515f18deaf71be787e5c5a45dce.js'></script>
 
     <script type="module">
@@ -403,16 +446,18 @@
         const firestore = getFirestore(app);
         const WATCH_COST = 1.00;
         
-        // ADMIN SETTINGS
-        const ADMIN_UID = "ILAGAY_DITO_ANG_UID_MO_GALING_FIREBASE"; 
+        // --- ADMIN UID ---
+        const ADMIN_UID = "5hok8GgRU9ZP0mQSbq0EUrHD7W52"; 
 
         let allContent = []; let userProfile = {}; let userFavorites = JSON.parse(localStorage.getItem('cinehubFavs')) || [];
         let userHistory = [];
         let commentsUnsubscribe = null; 
         const bgMusic = document.getElementById('bg-music'); bgMusic.volume = 0.3;
-
-        // --- 2. DIRECT LINK FOR ADS (Smart Link) ---
         const DIRECT_AD_LINK = "https://www.effectivegatecpm.com/tuwnc1ge?key=aa75acf007ec2ab9265e9dae93be2bdb"; 
+
+        // Global vars for admin chat
+        let currentChatUserId = null;
+        let chatUnsubscribe = null;
 
         onAuthStateChanged(auth, (user) => {
             setTimeout(() => {
@@ -429,11 +474,6 @@
                 checkPendingRequests(user.uid);
                 checkAdmin(user); 
                 switchScreen('app-activity');
-                
-                // MUSIC: Don't play automatically anymore (OFF by default)
-                // if(document.getElementById('bg-music-toggle').checked) bgMusic.play().catch(()=>{});
-
-                loadMessages(user.uid);
             } else {
                 switchScreen('auth-activity');
                 bgMusic.pause();
@@ -449,13 +489,13 @@
                     document.getElementById('setting-name').innerText = userProfile.name || "User";
                     document.getElementById('setting-email').innerText = user.email;
                 } else {
+                    // Self-healing if user doc is missing but auth exists
                     setDoc(docRef, { email: user.email, balance: 0, purchasedContent: [] });
                 }
             });
             fetchContent();
         }
 
-        // UPDATED: LIMIT 2
         function loadUserHistory(uid) {
             const q = query(collection(firestore, `users/${uid}/history`), orderBy('timestamp', 'desc'), limit(2));
             onSnapshot(q, (snap) => {
@@ -512,8 +552,21 @@
             gridTrend.innerHTML = ''; gridAll.innerHTML = '';
             
             let contentToDisplay = [];
-            if (filter === 'all') { contentToDisplay = allContent; } 
-            else { contentToDisplay = allContent.filter(item => item.type === filter); }
+            
+            // FILTER LOGIC (UPDATED)
+            if (filter === 'all') {
+                contentToDisplay = allContent;
+            } else if (['movie', 'series'].includes(filter)) {
+                contentToDisplay = allContent.filter(item => item.type === filter);
+            } else {
+                // For categories like Vivamax, Anime, etc. assuming they are in 'genre' or title/desc
+                const f = filter.toLowerCase();
+                contentToDisplay = allContent.filter(item => 
+                    (item.genre && item.genre.toLowerCase().includes(f)) || 
+                    (item.tags && item.tags.toLowerCase().includes(f)) ||
+                    (item.description && item.description.toLowerCase().includes(f))
+                );
+            }
 
             if (contentToDisplay.length === 0) {
                 gridAll.innerHTML = '<p style="text-align:center; color:#777; width:100%;">No content found.</p>';
@@ -523,10 +576,10 @@
             const trending = [...contentToDisplay].sort((a,b) => (b.views||0) - (a.views||0)).slice(0, 6);
             trending.forEach(c => gridTrend.innerHTML += createCard(c));
             contentToDisplay.forEach(c => gridAll.innerHTML += createCard(c));
-            setupCarousel(trending);
+            
+            if(filter === 'all') setupCarousel(trending);
         }
 
-        // UPDATED: COMPACT HISTORY RENDER
         function renderHistory() {
             const histSection = document.getElementById('history-section');
             const gridHist = document.getElementById('grid-history');
@@ -567,16 +620,21 @@
                 html += `<div class="vp-slide ${idx===0?'active':''}" style="background-image: url('${item.posterUrl}')"></div>`;
                 if(idx===0) updateCarouselCaption(item);
             });
+            // DYNAMIC BUTTON - Removed hardcoded onclick
             html += `<div class="vp-content"><h2 id="vp-title"></h2><button id="vp-btn" class="btn-primary">Watch Now</button></div>`;
             vp.innerHTML = html;
             const slides = vp.querySelectorAll('.vp-slide');
             let current = 0;
+            
+            // Set initial click
             document.getElementById('vp-btn').onclick = () => openDetails(items[current].id);
+
             slideInterval = setInterval(() => {
                 slides[current].classList.remove('active');
                 current = (current + 1) % slides.length;
                 slides[current].classList.add('active');
                 updateCarouselCaption(items[current]);
+                // Update click target
                 document.getElementById('vp-btn').onclick = () => openDetails(items[current].id);
             }, 5000);
         }
@@ -603,23 +661,15 @@
             const owned = userProfile.purchasedContent?.includes(item.id) || !item.isPaid;
             
             if (owned) {
-                if (!item.isPaid) {
-                     playBtn.innerHTML = `<i class="fas fa-ad"></i> Watch Ad to Play`;
-                } else {
-                     playBtn.innerHTML = `<i class="fas fa-play"></i> Watch Now`;
-                }
+                playBtn.innerHTML = !item.isPaid ? `<i class="fas fa-ad"></i> Watch Ad to Play` : `<i class="fas fa-play"></i> Watch Now`;
             } else {
                 playBtn.innerHTML = `<i class="fas fa-lock"></i> Buy ₱${WATCH_COST.toFixed(2)}`;
             }
 
             playBtn.onclick = () => {
-                if(item.type === 'series' && !owned && item.isPaid) {
-                    tryWatch(item);
-                } else if (item.type === 'series') {
-                    document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
-                } else {
-                    tryWatch(item);
-                }
+                if(item.type === 'series' && !owned && item.isPaid) tryWatch(item);
+                else if (item.type === 'series') document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
+                else tryWatch(item);
             };
 
             const epArea = document.getElementById('series-episodes-area');
@@ -637,6 +687,7 @@
             document.getElementById('details-modal').classList.add('open');
         }
 
+        // --- UPDATED COMMENT LOADER WITH NESTED REPLY SUPPORT ---
         function loadComments(contentId) {
             const list = document.getElementById('comments-list');
             list.innerHTML = '<p style="color:#777; text-align:center;">Loading comments...</p>';
@@ -650,12 +701,42 @@
                     list.innerHTML = '<p style="color:#777; text-align:center;">No comments yet.</p>';
                     return;
                 }
+
+                // 1. Separate Parents and Replies
+                let parents = [];
+                let replies = {};
+
                 snap.forEach(doc => {
-                    const c = doc.data();
+                    const data = doc.data();
+                    const item = { id: doc.id, ...data };
+                    
+                    if (item.replyTo) {
+                        // This is a reply
+                        replies[item.replyTo] = item;
+                    } else {
+                        // This is a main comment
+                        parents.push(item);
+                    }
+                });
+
+                // 2. Render Parents and attach Replies if they exist
+                parents.forEach(c => {
                     const isOwner = auth.currentUser && c.userId === auth.currentUser.uid;
-                    const deleteBtn = isOwner ? `<i class="fas fa-trash comment-delete" onclick="deleteComment('${contentId}', '${doc.id}')"></i>` : '';
+                    const deleteBtn = isOwner ? `<i class="fas fa-trash comment-delete" onclick="deleteComment('${contentId}', '${c.id}')"></i>` : '';
                     const time = c.timestamp ? new Date(c.timestamp.toDate()).toLocaleDateString() : '';
                     
+                    // Check if this comment has an admin reply
+                    let replyHtml = '';
+                    if (replies[c.id]) {
+                        const r = replies[c.id];
+                        replyHtml = `
+                            <div class="admin-reply-container">
+                                <div class="admin-badge"><i class="fas fa-shield-alt"></i> Admin Response</div>
+                                <div style="color:#eee;">${r.text}</div>
+                            </div>
+                        `;
+                    }
+
                     list.innerHTML += `
                         <div class="comment-item">
                             <div class="comment-header">
@@ -663,6 +744,7 @@
                                 <span><span class="comment-time">${time}</span>${deleteBtn}</span>
                             </div>
                             <div class="comment-text">${c.text}</div>
+                            ${replyHtml} 
                         </div>
                     `;
                 });
@@ -674,23 +756,12 @@
             const txt = document.getElementById('comment-input').value.trim();
             const id = e.target.dataset.id;
             if(!txt || !id || !auth.currentUser) return;
-            
             try {
-                await addDoc(collection(firestore, `comments/${id}/thread`), {
-                    text: txt,
-                    userId: auth.currentUser.uid,
-                    userName: userProfile.name || 'User',
-                    timestamp: serverTimestamp()
-                });
+                await addDoc(collection(firestore, `comments/${id}/thread`), { text: txt, userId: auth.currentUser.uid, userName: userProfile.name || 'User', timestamp: serverTimestamp() });
                 document.getElementById('comment-input').value = '';
             } catch(err) { showToast("Failed to post comment."); }
         });
-
-        window.deleteComment = async (contentId, commentId) => {
-            if(confirm("Delete this comment?")) {
-                await deleteDoc(doc(firestore, `comments/${contentId}/thread/${commentId}`));
-            }
-        };
+        window.deleteComment = async (contentId, commentId) => { if(confirm("Delete this comment?")) await deleteDoc(doc(firestore, `comments/${contentId}/thread/${commentId}`)); };
 
         async function addToHistory(item) {
             if(!auth.currentUser) return;
@@ -701,42 +772,24 @@
         function incrementViewCount(item) {
             const path = item.type === 'movie' ? `movies/${item.id}/views` : `series/${item.id}/views`;
             const viewRef = ref(db, path);
-            runTransaction(viewRef, (currentViews) => {
-                return (currentViews || 0) + 1;
-            });
+            runTransaction(viewRef, (currentViews) => { return (currentViews || 0) + 1; });
         }
 
         window.tryWatch = (itemOrId, url=null) => {
-            let item = itemOrId;
-            if (typeof item === 'string') {
-                item = allContent.find(c => c.id === item);
-            }
+            let item = (typeof itemOrId === 'string') ? allContent.find(c => c.id === itemOrId) : itemOrId;
             if (!item) return;
-
             const videoUrl = url || item.videoUrl;
             const owned = userProfile.purchasedContent?.includes(item.id) || !item.isPaid;
 
             if(owned) { 
                 addToHistory(item); 
-                
                 if (!item.isPaid) {
                     window.open(DIRECT_AD_LINK, '_blank'); 
-                    if(videoUrl) {
-                        incrementViewCount(item);
-                        setTimeout(() => {
-                            launchPlayerActivity(item.title, videoUrl);
-                        }, 2000);
-                    } else if (item.type === 'series') {
-                        document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
-                    }
-
+                    if(videoUrl) { incrementViewCount(item); setTimeout(() => { launchPlayerActivity(item.title, videoUrl); }, 2000); }
+                    else if (item.type === 'series') document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
                 } else {
-                    if(videoUrl) {
-                        incrementViewCount(item); 
-                        launchPlayerActivity(item.title, videoUrl); 
-                    } else if (item.type === 'series') {
-                        document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
-                    }
+                    if(videoUrl) { incrementViewCount(item); launchPlayerActivity(item.title, videoUrl); }
+                    else if (item.type === 'series') document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
                 }
             }
             else {
@@ -751,17 +804,9 @@
                             if(!userProfile.purchasedContent) userProfile.purchasedContent = [];
                             userProfile.purchasedContent.push(item.id);
                             addDoc(collection(firestore, "purchases"), { userId: auth.currentUser.uid, userEmail: auth.currentUser.email, contentTitle: item.title, amount: WATCH_COST, timestamp: serverTimestamp() });
-                            
-                            renderHome(); 
-                            openDetails(item.id); 
-                            addToHistory(item); 
-                            
-                            if(videoUrl) {
-                                incrementViewCount(item); 
-                                launchPlayerActivity(item.title, videoUrl); 
-                            } else {
-                                showToast("Unlocked! Select an episode.");
-                            }
+                            renderHome(); openDetails(item.id); addToHistory(item); 
+                            if(videoUrl) { incrementViewCount(item); launchPlayerActivity(item.title, videoUrl); }
+                            else showToast("Unlocked! Select an episode.");
                         })
                         .catch(err => showToast("Transaction failed: " + err.message));
                     }
@@ -775,39 +820,16 @@
             document.getElementById('app-activity').style.display = 'none'; 
             document.getElementById('player-activity').style.display = 'flex';
             document.getElementById('player-title-text').innerText = title;
-            
-            const iframe = document.getElementById('player-iframe');
-            iframe.removeAttribute('sandbox'); 
-            iframe.src = url;
-
+            document.getElementById('player-iframe').removeAttribute('sandbox'); 
+            document.getElementById('player-iframe').src = url;
             history.pushState({ page: 'player' }, "Player", "#player");
             const elem = document.getElementById('player-activity'); 
-            try { if (elem.requestFullscreen) await elem.requestFullscreen(); else if (elem.webkitRequestFullscreen) await elem.webkitRequestFullscreen(); } catch(e){}
-            try { if (screen.orientation && screen.orientation.lock) await screen.orientation.lock("landscape").catch(()=>{}); } catch(e){}
+            try { if (elem.requestFullscreen) await elem.requestFullscreen(); } catch(e){}
         }
-        
         window.toggleFullscreen = () => {
             const elem = document.getElementById('player-activity');
-            if (!document.fullscreenElement) {
-                if (elem.requestFullscreen) elem.requestFullscreen().catch(()=>{});
-                else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen().catch(()=>{});
-                try { screen.orientation.lock("landscape").catch(()=>{}); } catch(e){}
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen().catch(()=>{});
-                else if (document.webkitExitFullscreen) document.webkitExitFullscreen().catch(()=>{});
-                try { screen.orientation.unlock(); } catch(e){}
-            }
+            if (!document.fullscreenElement) { if (elem.requestFullscreen) elem.requestFullscreen(); } else { if (document.exitFullscreen) document.exitFullscreen(); }
         }
-
-        window.openExternally = () => { if(currentStreamUrl) window.open(currentStreamUrl, '_blank'); };
-
-        window.addEventListener('popstate', (event) => {
-            if (document.getElementById('player-activity').style.display === 'flex') {
-                history.pushState({ page: 'player' }, "Player", "#player");
-                document.getElementById('player-exit-dialog').classList.add('open');
-            }
-        });
-
         window.triggerPlayerExit = () => { document.getElementById('player-exit-dialog').classList.add('open'); }
         window.confirmExitPlayer = () => { document.getElementById('player-exit-dialog').classList.remove('open'); closePlayerUI(); history.back(); }
         window.confirmRefreshPlayer = () => { document.getElementById('player-exit-dialog').classList.remove('open'); refreshPlayer(); }
@@ -815,23 +837,56 @@
             document.getElementById('player-iframe').src = ""; 
             document.getElementById('player-activity').style.display = 'none'; 
             document.getElementById('app-activity').style.display = 'block'; 
-            try { if (document.exitFullscreen && document.fullscreenElement) document.exitFullscreen(); } catch(e){}
-            try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch(e){}
             if(document.getElementById('bg-music-toggle').checked) bgMusic.play().catch(()=>{}); 
         }
         window.refreshPlayer = () => { const iframe = document.getElementById('player-iframe'); iframe.src = 'about:blank'; setTimeout(() => iframe.src = currentStreamUrl, 200); }
 
-        window.openChatModal = () => { document.getElementById('chat-modal').classList.add('open'); document.getElementById('chat-window').scrollTop = document.getElementById('chat-window').scrollHeight; }
+        // --- USER CHAT SYSTEM ---
+        window.openChatModal = () => { 
+            document.getElementById('chat-modal').classList.add('open'); 
+            document.getElementById('chat-modal-title').innerText = "Admin Support";
+            currentChatUserId = auth.currentUser.uid; // Set current user context
+            loadMessages(auth.currentUser.uid);
+        }
+        
         function loadMessages(uid) {
+            if(chatUnsubscribe) chatUnsubscribe();
             const win = document.getElementById('chat-window');
             const q = query(collection(firestore, `messages/${uid}/thread`), orderBy('timestamp','asc'));
-            onSnapshot(q, (snap) => {
+            chatUnsubscribe = onSnapshot(q, (snap) => {
                 win.innerHTML = snap.empty ? '<p style="text-align:center; color:#777; margin-top:20px;">Send a message to support.</p>' : '';
-                snap.forEach(d => { const m = d.data(); win.innerHTML += `<div class="msg-bubble msg-${m.sender}">${m.text}</div>`; });
+                snap.forEach(d => { 
+                    const m = d.data(); 
+                    win.innerHTML += `<div class="msg-bubble msg-${m.sender}">${m.text}</div>`; 
+                });
                 win.scrollTop = win.scrollHeight;
             });
         }
-        document.getElementById('chat-form').addEventListener('submit', async e => { e.preventDefault(); const txt = document.getElementById('chat-input').value.trim(); if(!txt) return; await addDoc(collection(firestore, `messages/${auth.currentUser.uid}/thread`), { text:txt, sender:'user', timestamp:serverTimestamp() }); document.getElementById('chat-input').value = ''; });
+
+        document.getElementById('chat-form').addEventListener('submit', async e => { 
+            e.preventDefault(); 
+            const txt = document.getElementById('chat-input').value.trim(); 
+            if(!txt) return; 
+            
+            const sender = (auth.currentUser.uid === ADMIN_UID && currentChatUserId !== ADMIN_UID) ? 'admin' : 'user';
+            const targetUid = (sender === 'admin') ? currentChatUserId : auth.currentUser.uid;
+
+            // 1. Add to thread
+            await addDoc(collection(firestore, `messages/${targetUid}/thread`), { text:txt, sender:sender, timestamp:serverTimestamp() });
+            
+            // 2. Update Admin Inbox (Only if User sends)
+            if(sender === 'user') {
+                await setDoc(doc(firestore, "admin_inbox", targetUid), {
+                    userId: targetUid,
+                    userName: userProfile.name || "User",
+                    lastMsg: txt,
+                    timestamp: serverTimestamp(),
+                    unread: true
+                });
+            }
+
+            document.getElementById('chat-input').value = ''; 
+        });
 
         window.switchScreen = (id) => { document.querySelectorAll('.screen-activity').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); if(id === 'app-activity') history.replaceState(null, null, ' '); }
         window.switchView = (id, el) => { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); document.getElementById('view-'+id).classList.add('active'); document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active')); el.classList.add('active'); if(id==='favorites') renderFavorites(); }
@@ -849,22 +904,14 @@
         window.selectPaymentMethod = (method) => {
             document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
             document.querySelectorAll('.pay-details').forEach(d => d.classList.remove('active'));
-            
             document.getElementById('request-balance-form').style.display = 'block';
             document.getElementById('selected-method').value = method;
-            
             if (method === 'gcash') {
                 document.getElementById('pay-btn-gcash').classList.add('selected');
                 document.getElementById('gcash-details').classList.add('active');
-                
-                document.getElementById('gcash-number').innerText = "0917xxxxxxx"; // <--- CHANGE THIS
-                document.getElementById('gcash-name').innerText = "Rod***A."; // <--- CHANGE THIS
             } else if (method === 'bpi') {
                 document.getElementById('pay-btn-bpi').classList.add('selected');
                 document.getElementById('bpi-details').classList.add('active');
-
-                document.getElementById('bpi-number').innerText = "2569560732"; // <--- CHANGE THIS
-                document.getElementById('bpi-name').innerText = "Roderick"; // <--- CHANGE THIS
             }
         }
 
@@ -875,9 +922,11 @@
             const method = document.getElementById('selected-method').value;
             if(!amt || !refNum) return;
             
+            // FIX: Added userProfile.name to userName to avoid 'Undefined'
             await addDoc(collection(firestore,"balance_requests"),{
                 userId:auth.currentUser.uid, 
-                userEmail: auth.currentUser.email, 
+                userEmail: auth.currentUser.email,
+                userName: userProfile.name || "No Name", 
                 amount:parseFloat(amt), 
                 refNum: refNum, 
                 method: method, 
@@ -888,12 +937,9 @@
             showToast('Request Sent! Wait for verification.'); 
             document.getElementById('wallet-modal').classList.remove('open'); 
             document.getElementById('request-balance-form').reset();
-            document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
-            document.querySelectorAll('.pay-details').forEach(d => d.classList.remove('active'));
-            document.getElementById('request-balance-form').style.display = 'none';
         });
 
-        // --- ADMIN DASHBOARD ---
+        // --- UPDATED ADMIN DASHBOARD ---
         window.openAdminPanel = () => {
             const modal = document.createElement('div');
             modal.className = 'modal-overlay open';
@@ -902,55 +948,104 @@
                 <div class="modal-sheet" style="height:90vh;">
                     <div style="position:absolute; top:10px; right:15px; font-size:1.5rem; color:#888; cursor:pointer;" onclick="document.getElementById('admin-modal').remove()">&times;</div>
                     <h3>Admin Dashboard</h3>
-                    <div style="margin-top:20px;">
-                        <h4>Pending Top-ups</h4>
+                    
+                    <div class="admin-tabs">
+                        <button class="admin-tab-btn active" onclick="switchAdminTab('requests', this)">Requests</button>
+                        <button class="admin-tab-btn" onclick="switchAdminTab('messages', this)">Messages</button>
+                    </div>
+
+                    <div id="admin-view-requests" class="admin-panel-view active">
                         <div id="admin-requests-list" style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">Loading...</div>
+                    </div>
+                    
+                    <div id="admin-view-messages" class="admin-panel-view">
+                        <div id="admin-inbox-list" style="margin-top:10px;">Loading inbox...</div>
                     </div>
                 </div>
             `;
             document.body.appendChild(modal);
             loadPendingRequests();
+            loadAdminInbox();
         };
+
+        window.switchAdminTab = (tabId, btn) => {
+            document.querySelectorAll('.admin-panel-view').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('admin-view-'+tabId).classList.add('active');
+            btn.classList.add('active');
+        }
 
         function loadPendingRequests() {
             const list = document.getElementById('admin-requests-list');
             const q = query(collection(firestore, "balance_requests"), where("status", "==", "pending"), orderBy("timestamp", "desc"));
-            
             onSnapshot(q, (snap) => {
                 list.innerHTML = '';
-                if(snap.empty) {
-                    list.innerHTML = '<p style="color:#777;">No pending requests.</p>';
-                    return;
-                }
-
+                if(snap.empty) { list.innerHTML = '<p style="color:#777;">No pending requests.</p>'; return; }
                 snap.forEach(d => {
                     const data = d.data();
                     const time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : '';
-                    
-                    const item = document.createElement('div');
-                    item.style.background = '#222';
-                    item.style.padding = '15px';
-                    item.style.borderRadius = '8px';
-                    item.style.border = '1px solid #333';
-                    item.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                            <span style="color:var(--primary); font-weight:bold;">${data.method.toUpperCase()}</span>
-                            <span style="font-size:0.8rem; color:#888;">${time}</span>
-                        </div>
-                        <div style="font-size:0.9rem; color:#eee; margin-bottom:5px;">
-                            User: ${data.userEmail}<br>
-                            Amount: <b>₱${data.amount}</b><br>
-                            Ref #: <span style="color:#yellow; font-weight:bold;">${data.refNum}</span>
-                        </div>
-                        <div style="display:flex; gap:10px; margin-top:10px;">
-                            <button class="btn-primary" style="padding:8px; font-size:0.8rem; flex:1;" onclick="approveRequest('${d.id}', '${data.userId}', ${data.amount})">Approve</button>
-                            <button class="btn-primary" style="padding:8px; font-size:0.8rem; flex:1; background:#333;" onclick="rejectRequest('${d.id}')">Reject</button>
+                    // FIX: Using userName field
+                    list.innerHTML += `
+                        <div style="background:#222; padding:15px; border-radius:8px; border:1px solid #333;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <span style="color:var(--primary); font-weight:bold;">${data.method.toUpperCase()}</span>
+                                <span style="font-size:0.8rem; color:#888;">${time}</span>
+                            </div>
+                            <div style="font-size:0.9rem; color:#eee; margin-bottom:5px;">
+                                User: ${data.userName} (${data.userEmail})<br>
+                                Amount: <b>₱${data.amount}</b><br>
+                                Ref #: <span style="color:#yellow; font-weight:bold;">${data.refNum}</span>
+                            </div>
+                            <div style="display:flex; gap:10px; margin-top:10px;">
+                                <button class="btn-primary" style="padding:8px; font-size:0.8rem; flex:1;" onclick="approveRequest('${d.id}', '${data.userId}', ${data.amount})">Approve</button>
+                                <button class="btn-primary" style="padding:8px; font-size:0.8rem; flex:1; background:#333;" onclick="rejectRequest('${d.id}')">Reject</button>
+                            </div>
                         </div>
                     `;
+                });
+            });
+        }
+
+        // --- NEW: ADMIN INBOX LOGIC ---
+        function loadAdminInbox() {
+            const list = document.getElementById('admin-inbox-list');
+            const q = query(collection(firestore, "admin_inbox"), orderBy("timestamp", "desc"));
+            onSnapshot(q, (snap) => {
+                list.innerHTML = '';
+                if(snap.empty) { list.innerHTML = '<p style="color:#777;">No messages.</p>'; return; }
+                snap.forEach(d => {
+                    const data = d.data();
+                    const time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleTimeString() : '';
+                    const unreadClass = data.unread ? 'inbox-unread' : '';
+                    
+                    const item = document.createElement('div');
+                    item.className = `inbox-item ${unreadClass}`;
+                    item.innerHTML = `
+                        <div>
+                            <div style="font-weight:bold; color:${data.unread ? 'white' : '#aaa'};">${data.userName}</div>
+                            <div style="font-size:0.8rem; color:#888; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:200px;">${data.lastMsg}</div>
+                        </div>
+                        <div style="font-size:0.7rem; color:#666;">${time}</div>
+                    `;
+                    item.onclick = () => openAdminChat(data.userId, data.userName);
                     list.appendChild(item);
                 });
             });
         }
+
+        window.openAdminChat = (targetUid, targetName) => {
+            currentChatUserId = targetUid; // Set target for admin
+            document.getElementById('admin-modal').remove(); // Close dashboard
+            
+            // Open chat modal
+            document.getElementById('chat-modal').classList.add('open');
+            document.getElementById('chat-modal-title').innerText = "Chat with " + targetName;
+            
+            // Mark as read
+            updateDoc(doc(firestore, "admin_inbox", targetUid), { unread: false });
+            
+            loadMessages(targetUid);
+        };
 
         window.approveRequest = async (reqId, userId, amount) => {
             if(!confirm(`Approve ₱${amount} for this user?`)) return;
@@ -974,7 +1069,25 @@
         };
 
         document.getElementById('login-form').addEventListener('submit', e=>{e.preventDefault(); signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value).catch(e=>showToast(e.message))});
-        document.getElementById('register-form').addEventListener('submit', e=>{e.preventDefault(); createUserWithEmailAndPassword(auth, document.getElementById('reg-email').value, document.getElementById('reg-pass').value).then(c=>setDoc(doc(firestore,"users",c.user.uid),{name:document.getElementById('reg-name').value,balance:0})).catch(e=>showToast(e.message))});
+        
+        // UPDATED REGISTRATION TO ENSURE NAME SAVING
+        document.getElementById('register-form').addEventListener('submit', e=>{
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+            
+            createUserWithEmailAndPassword(auth, email, pass)
+            .then(c => {
+                // FIX: Wait for setDoc to ensure data exists before routing
+                setDoc(doc(firestore,"users",c.user.uid), { name: name, email: email, balance: 0, purchasedContent: [] })
+                .then(() => {
+                     showToast("Registered successfully!");
+                });
+            })
+            .catch(e => showToast(e.message));
+        });
+        
         document.getElementById('forgot-form').addEventListener('submit', e=>{e.preventDefault(); sendPasswordResetEmail(auth, document.getElementById('forgot-email').value).then(()=>showToast('Email sent!')).catch(e=>showToast(e.message));});
         
         window.logout = () => signOut(auth);
