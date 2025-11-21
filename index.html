@@ -871,6 +871,18 @@
         }
 
         function incrementViewCount(item) {
+            // Optimistic update: Update local data immediately so it feels fast
+            if(item.views === undefined) item.views = 0;
+            item.views++;
+            
+            // Update Modal UI immediately if open
+            const modalTitle = document.getElementById('modal-title');
+            if(modalTitle && modalTitle.innerText === item.title) {
+                 const views = formatViews(item.views);
+                 document.getElementById('modal-tags').innerHTML = `<span>${item.releaseYear||'2023'}</span> <span>${item.genre||'Action'}</span> <span><i class="fas fa-eye"></i> ${views}</span>`;
+            }
+
+            // Database update
             const path = item.type === 'movie' ? `movies/${item.id}/views` : `series/${item.id}/views`;
             const viewRef = ref(db, path);
             runTransaction(viewRef, (currentViews) => { return (currentViews || 0) + 1; });
