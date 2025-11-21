@@ -93,7 +93,18 @@
         .card-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.2s; }
         .movie-card:hover .card-overlay { opacity: 1; }
         .lock-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2.5rem; color: rgba(255,255,255,0.8); text-shadow: 0 0 10px rgba(0,0,0,0.9); z-index: 3; }
-        #history-section { display: none; } 
+        
+        /* --- NEW HISTORY STYLE --- */
+        #history-section { display: none; padding: 0 15px; margin-bottom: 20px; } 
+        #grid-history { display: flex; flex-direction: column; gap: 8px; }
+        .history-mini-card { 
+            display: flex; justify-content: space-between; align-items: center;
+            background: #222; padding: 12px 15px; border-radius: 6px; 
+            border: 1px solid #333; cursor: pointer; transition: background 0.2s;
+        }
+        .history-mini-card:active { background: #333; }
+        .history-title { font-size: 0.9rem; font-weight: 500; color: #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80%; }
+        .history-btn { color: var(--primary); font-size: 1.2rem; }
 
         nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #0f0f0f; border-top: 1px solid #333; display: flex; justify-content: space-around; padding: 10px 0; z-index: 100; }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-dim); text-decoration: none; font-size: 0.75rem; }
@@ -150,6 +161,18 @@
         .msg-user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
         .msg-admin { background: #333; color: #ddd; align-self: flex-start; border-bottom-left-radius: 2px; }
         .fab-chat { position: fixed; bottom: 80px; right: 20px; background: var(--primary); width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 1.2rem; box-shadow: 0 5px 15px rgba(229,9,20,0.4); z-index: 90; cursor: pointer; }
+
+        /* WALLET STYLES */
+        .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .pay-btn { padding: 12px; border: 1px solid #333; background: #222; border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; transition: 0.2s; color: #ccc; }
+        .pay-btn.selected { border-color: var(--primary); background: rgba(229, 9, 20, 0.1); color: white; font-weight: bold; }
+        .pay-btn i { font-size: 1.5rem; margin-bottom: 5px; }
+        .pay-details { background: #222; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #333; text-align: left; display: none; animation: fadeIn 0.3s; }
+        .pay-details.active { display: block; }
+        .app-link-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 12px; color: white; border-radius: 6px; margin: 10px 0; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: opacity 0.2s; }
+        .app-link-btn:active { opacity: 0.8; }
+        .gcash-btn { background: #007dfe; }
+        .bpi-btn { background: #b10023; }
 
         /* UTILS */
         .toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 20px; border-radius: 20px; font-size: 0.9rem; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 5000; }
@@ -220,15 +243,23 @@
                 <button class="filter-tab" onclick="filterContent('movie', this)">Movies</button>
                 <button class="filter-tab" onclick="filterContent('series', this)">Series</button>
             </div>
-            <div id="history-section"><h3 class="section-title">Continue Watching</h3><div id="grid-history" class="movies-grid"></div></div>
+            
+            <!-- UPDATED HISTORY SECTION (List Style) -->
+            <div id="history-section">
+                <h3 class="section-title">Continue Watching</h3>
+                <div id="grid-history"></div> <!-- Removed movies-grid class -->
+            </div>
+
             <h3 class="section-title">Trending</h3><div id="grid-trending" class="movies-grid"></div>
             <h3 class="section-title">All Content</h3><div id="grid-all" class="movies-grid"></div>
         </div>
         <div id="view-search" class="view"><input type="text" id="search-input" class="search-bar" placeholder="Search..."><div id="grid-search" class="movies-grid" style="margin-top: 20px;"></div></div>
         <div id="view-favorites" class="view"><h3 class="section-title" style="margin-top: 20px;">Watchlist</h3><div id="grid-favorites" class="movies-grid"></div></div>
+        
         <div id="view-settings" class="view">
             <div class="settings-item"><div><div style="font-weight:600;" id="setting-name">User</div><div style="font-size:0.8rem; color:#888;" id="setting-email">email</div></div></div>
-            <div class="settings-item"><span>Background Music</span><input type="checkbox" id="bg-music-toggle" checked></div>
+            <!-- MUSIC TOGGLE OFF BY DEFAULT -->
+            <div class="settings-item"><span>Background Music</span><input type="checkbox" id="bg-music-toggle"></div>
             <div class="settings-item" onclick="openWalletModal()"><span>My Wallet</span><i class="fas fa-chevron-right"></i></div>
             <div id="pending-request-display"></div>
             <div class="settings-item" onclick="openChatModal()"><span>Message Admin</span><i class="fas fa-envelope"></i></div>
@@ -312,19 +343,43 @@
         </div>
     </div>
 
+    <!-- MODIFIED WALLET MODAL -->
     <div id="wallet-modal" class="modal-overlay">
         <div class="modal-sheet">
             <div style="position:absolute; top:10px; right:15px; font-size:1.5rem; color:#888; cursor:pointer;" onclick="document.getElementById('wallet-modal').classList.remove('open')">&times;</div>
             <h3>Top-up Balance</h3>
-            <div style="background: #222; padding: 15px; border-radius: 5px; margin-bottom: 20px; border: 1px solid #333;">
-                <p style="color:#aaa; font-size:0.85rem; margin-bottom:5px;">Send GCash to:</p>
-                <p style="color:var(--primary); font-size:1.1rem; font-weight:bold; margin-bottom:5px;">09****</p>
-                <p style="color:#fff; font-size:0.9rem;">Name: <span style="color:#ddd; font-weight:600;">RO***** A.</span></p>
+            <p style="font-size:0.8rem; color:#aaa; margin-bottom:15px;">Select a payment method, pay externally, then submit the reference number here.</p>
+            
+            <div class="payment-methods">
+                <div id="pay-btn-gcash" class="pay-btn" onclick="selectPaymentMethod('gcash')">
+                    <i class="fas fa-wallet" style="color:#007dfe;"></i>
+                    <span>GCash</span>
+                </div>
+                <div id="pay-btn-bpi" class="pay-btn" onclick="selectPaymentMethod('bpi')">
+                    <i class="fas fa-university" style="color:#b10023;"></i>
+                    <span>BPI</span>
+                </div>
             </div>
-            <form id="request-balance-form">
+
+            <div id="gcash-details" class="pay-details">
+                <p style="color:#aaa; font-size:0.85rem; margin-bottom:5px;">Send GCash to:</p>
+                <p style="color:#007dfe; font-size:1.1rem; font-weight:bold; margin-bottom:5px;" id="gcash-number">0917xxxxxxx</p>
+                <p style="color:#fff; font-size:0.9rem;">Name: <span style="color:#ddd; font-weight:600;" id="gcash-name">Rod***A.</span></p>
+                <a href="https://m.gcash.com" target="_blank" class="app-link-btn gcash-btn"><i class="fas fa-external-link-alt"></i> Open GCash App</a>
+            </div>
+
+            <div id="bpi-details" class="pay-details">
+                <p style="color:#aaa; font-size:0.85rem; margin-bottom:5px;">Transfer to BPI:</p>
+                <p style="color:#b10023; font-size:1.1rem; font-weight:bold; margin-bottom:5px;" id="bpi-number">2569560732</p>
+                <p style="color:#fff; font-size:0.9rem;">Roderick: <span style="color:#ddd; font-weight:600;" id="bpi-name">YOUR NAME</span></p>
+                <a href="https://online.bpi.com.ph" target="_blank" class="app-link-btn bpi-btn"><i class="fas fa-external-link-alt"></i> Open BPI Online</a>
+            </div>
+
+            <form id="request-balance-form" style="display:none;">
+                <input type="hidden" id="selected-method" value="">
                 <input type="number" id="topup-amount" class="input-field" placeholder="Amount Sent" required>
-                <input type="text" id="topup-ref" class="input-field" placeholder="Reference No." required>
-                <button type="submit" class="btn-primary">Submit Request</button>
+                <input type="text" id="topup-ref" class="input-field" placeholder="Reference No. (Ref #)" required>
+                <button type="submit" class="btn-primary">Submit Payment Ref</button>
             </form>
         </div>
     </div>
@@ -347,6 +402,9 @@
         const db = getDatabase(app);
         const firestore = getFirestore(app);
         const WATCH_COST = 1.00;
+        
+        // ADMIN SETTINGS
+        const ADMIN_UID = "ILAGAY_DITO_ANG_UID_MO_GALING_FIREBASE"; 
 
         let allContent = []; let userProfile = {}; let userFavorites = JSON.parse(localStorage.getItem('cinehubFavs')) || [];
         let userHistory = [];
@@ -369,8 +427,12 @@
                 loadUserData(user);
                 loadUserHistory(user.uid);
                 checkPendingRequests(user.uid);
+                checkAdmin(user); 
                 switchScreen('app-activity');
-                if(document.getElementById('bg-music-toggle').checked) bgMusic.play().catch(()=>{});
+                
+                // MUSIC: Don't play automatically anymore (OFF by default)
+                // if(document.getElementById('bg-music-toggle').checked) bgMusic.play().catch(()=>{});
+
                 loadMessages(user.uid);
             } else {
                 switchScreen('auth-activity');
@@ -393,8 +455,9 @@
             fetchContent();
         }
 
+        // UPDATED: LIMIT 2
         function loadUserHistory(uid) {
-            const q = query(collection(firestore, `users/${uid}/history`), orderBy('timestamp', 'desc'), limit(4));
+            const q = query(collection(firestore, `users/${uid}/history`), orderBy('timestamp', 'desc'), limit(2));
             onSnapshot(q, (snap) => {
                 userHistory = [];
                 snap.forEach(doc => userHistory.push(doc.data().id));
@@ -412,6 +475,20 @@
                     display.innerHTML = `<i class="fas fa-clock"></i> Pending Top-up: ₱${data.amount}`;
                 } else { display.style.display = 'none'; }
             });
+        }
+
+        async function checkAdmin(user) {
+            if(user.uid === ADMIN_UID) {
+                const settingsDiv = document.getElementById('view-settings');
+                if(!document.getElementById('admin-btn-panel')) {
+                    const adminBtn = document.createElement('div');
+                    adminBtn.id = 'admin-btn-panel';
+                    adminBtn.className = 'settings-item';
+                    adminBtn.innerHTML = `<span><i class="fas fa-user-shield" style="color:var(--primary);"></i> Admin Panel</span><i class="fas fa-chevron-right"></i>`;
+                    adminBtn.onclick = openAdminPanel;
+                    settingsDiv.insertBefore(adminBtn, settingsDiv.children[2]); 
+                }
+            }
         }
 
         async function fetchContent() {
@@ -449,6 +526,7 @@
             setupCarousel(trending);
         }
 
+        // UPDATED: COMPACT HISTORY RENDER
         function renderHistory() {
             const histSection = document.getElementById('history-section');
             const gridHist = document.getElementById('grid-history');
@@ -458,7 +536,12 @@
                 userHistory.forEach(histId => {
                     const item = allContent.find(c => c.id === histId);
                     if(item) {
-                        gridHist.innerHTML += createCard(item);
+                        gridHist.innerHTML += `
+                            <div class="history-mini-card" onclick="openDetails('${item.id}')">
+                                <span class="history-title">${item.title}</span>
+                                <i class="fas fa-play-circle history-btn"></i>
+                            </div>
+                        `;
                         hasItems = true;
                     }
                 });
@@ -519,17 +602,13 @@
             const playBtn = document.getElementById('modal-play-btn');
             const owned = userProfile.purchasedContent?.includes(item.id) || !item.isPaid;
             
-            // CHANGED BUTTON TEXT LOGIC
             if (owned) {
                 if (!item.isPaid) {
-                     // Free but Owned (Watch Ad Logic)
                      playBtn.innerHTML = `<i class="fas fa-ad"></i> Watch Ad to Play`;
                 } else {
-                     // Paid and Owned
                      playBtn.innerHTML = `<i class="fas fa-play"></i> Watch Now`;
                 }
             } else {
-                // Paid and Not Owned
                 playBtn.innerHTML = `<i class="fas fa-lock"></i> Buy ₱${WATCH_COST.toFixed(2)}`;
             }
 
@@ -627,7 +706,6 @@
             });
         }
 
-        // --- UPDATED WATCH LOGIC WITH ADS ---
         window.tryWatch = (itemOrId, url=null) => {
             let item = itemOrId;
             if (typeof item === 'string') {
@@ -641,22 +719,18 @@
             if(owned) { 
                 addToHistory(item); 
                 
-                // LOGIC: If FREE -> Show Ads first, then Play
                 if (!item.isPaid) {
-                    window.open(DIRECT_AD_LINK, '_blank'); // Open Smart Link
-                    
-                    // DELAY PLAY (2 Seconds) to ensure Ad opens
+                    window.open(DIRECT_AD_LINK, '_blank'); 
                     if(videoUrl) {
                         incrementViewCount(item);
                         setTimeout(() => {
                             launchPlayerActivity(item.title, videoUrl);
-                        }, 2000); // 2000ms = 2 seconds delay
+                        }, 2000);
                     } else if (item.type === 'series') {
                         document.getElementById('series-episodes-area').scrollIntoView({behavior: 'smooth'});
                     }
 
                 } else {
-                    // PAID Content (No Ads, No Delay)
                     if(videoUrl) {
                         incrementViewCount(item); 
                         launchPlayerActivity(item.title, videoUrl); 
@@ -666,7 +740,6 @@
                 }
             }
             else {
-                // IF PAID -> BUY PROCESS
                 const currentBal = parseFloat(userProfile.balance) || 0;
                 if(currentBal >= WATCH_COST) {
                     if(confirm(`Purchase access to "${item.title}" for ₱${WATCH_COST.toFixed(2)}?`)) {
@@ -772,23 +845,139 @@
         function toggleFav(id) { userFavorites.includes(id)?userFavorites=userFavorites.filter(x=>x!==id):userFavorites.push(id); localStorage.setItem('cinehubFavs',JSON.stringify(userFavorites)); updateFavBtn(id); if(document.getElementById('view-favorites').classList.contains('active')) renderFavorites(); }
         function renderFavorites() { const g=document.getElementById('grid-favorites'); g.innerHTML=''; const f=allContent.filter(c=>userFavorites.includes(c.id)); f.length?f.forEach(c=>g.innerHTML+=createCard(c)):g.innerHTML='<p style="color:#777;">Empty list</p>'; }
         
+        // --- PAYMENT LOGIC ---
+        window.selectPaymentMethod = (method) => {
+            document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.pay-details').forEach(d => d.classList.remove('active'));
+            
+            document.getElementById('request-balance-form').style.display = 'block';
+            document.getElementById('selected-method').value = method;
+            
+            if (method === 'gcash') {
+                document.getElementById('pay-btn-gcash').classList.add('selected');
+                document.getElementById('gcash-details').classList.add('active');
+                
+                document.getElementById('gcash-number').innerText = "0917xxxxxxx"; // <--- CHANGE THIS
+                document.getElementById('gcash-name').innerText = "Rod***A."; // <--- CHANGE THIS
+            } else if (method === 'bpi') {
+                document.getElementById('pay-btn-bpi').classList.add('selected');
+                document.getElementById('bpi-details').classList.add('active');
+
+                document.getElementById('bpi-number').innerText = "2569560732"; // <--- CHANGE THIS
+                document.getElementById('bpi-name').innerText = "Roderick"; // <--- CHANGE THIS
+            }
+        }
+
+        document.getElementById('request-balance-form').addEventListener('submit', async e => { 
+            e.preventDefault(); 
+            const amt = document.getElementById('topup-amount').value;
+            const refNum = document.getElementById('topup-ref').value; 
+            const method = document.getElementById('selected-method').value;
+            if(!amt || !refNum) return;
+            
+            await addDoc(collection(firestore,"balance_requests"),{
+                userId:auth.currentUser.uid, 
+                userEmail: auth.currentUser.email, 
+                amount:parseFloat(amt), 
+                refNum: refNum, 
+                method: method, 
+                status:'pending', 
+                timestamp:serverTimestamp()
+            }); 
+            
+            showToast('Request Sent! Wait for verification.'); 
+            document.getElementById('wallet-modal').classList.remove('open'); 
+            document.getElementById('request-balance-form').reset();
+            document.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('selected'));
+            document.querySelectorAll('.pay-details').forEach(d => d.classList.remove('active'));
+            document.getElementById('request-balance-form').style.display = 'none';
+        });
+
+        // --- ADMIN DASHBOARD ---
+        window.openAdminPanel = () => {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay open';
+            modal.id = 'admin-modal';
+            modal.innerHTML = `
+                <div class="modal-sheet" style="height:90vh;">
+                    <div style="position:absolute; top:10px; right:15px; font-size:1.5rem; color:#888; cursor:pointer;" onclick="document.getElementById('admin-modal').remove()">&times;</div>
+                    <h3>Admin Dashboard</h3>
+                    <div style="margin-top:20px;">
+                        <h4>Pending Top-ups</h4>
+                        <div id="admin-requests-list" style="margin-top:10px; display:flex; flex-direction:column; gap:10px;">Loading...</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            loadPendingRequests();
+        };
+
+        function loadPendingRequests() {
+            const list = document.getElementById('admin-requests-list');
+            const q = query(collection(firestore, "balance_requests"), where("status", "==", "pending"), orderBy("timestamp", "desc"));
+            
+            onSnapshot(q, (snap) => {
+                list.innerHTML = '';
+                if(snap.empty) {
+                    list.innerHTML = '<p style="color:#777;">No pending requests.</p>';
+                    return;
+                }
+
+                snap.forEach(d => {
+                    const data = d.data();
+                    const time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleString() : '';
+                    
+                    const item = document.createElement('div');
+                    item.style.background = '#222';
+                    item.style.padding = '15px';
+                    item.style.borderRadius = '8px';
+                    item.style.border = '1px solid #333';
+                    item.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                            <span style="color:var(--primary); font-weight:bold;">${data.method.toUpperCase()}</span>
+                            <span style="font-size:0.8rem; color:#888;">${time}</span>
+                        </div>
+                        <div style="font-size:0.9rem; color:#eee; margin-bottom:5px;">
+                            User: ${data.userEmail}<br>
+                            Amount: <b>₱${data.amount}</b><br>
+                            Ref #: <span style="color:#yellow; font-weight:bold;">${data.refNum}</span>
+                        </div>
+                        <div style="display:flex; gap:10px; margin-top:10px;">
+                            <button class="btn-primary" style="padding:8px; font-size:0.8rem; flex:1;" onclick="approveRequest('${d.id}', '${data.userId}', ${data.amount})">Approve</button>
+                            <button class="btn-primary" style="padding:8px; font-size:0.8rem; flex:1; background:#333;" onclick="rejectRequest('${d.id}')">Reject</button>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            });
+        }
+
+        window.approveRequest = async (reqId, userId, amount) => {
+            if(!confirm(`Approve ₱${amount} for this user?`)) return;
+            try {
+                await updateDoc(doc(firestore, "balance_requests", reqId), { status: 'approved' });
+                const userRef = doc(firestore, "users", userId);
+                await runTransaction(firestore, async (transaction) => {
+                    const userDoc = await transaction.get(userRef);
+                    if (!userDoc.exists()) { throw "User does not exist!"; }
+                    const newBalance = (userDoc.data().balance || 0) + amount;
+                    transaction.update(userRef, { balance: newBalance });
+                });
+                showToast(`Success! Added ₱${amount} to user.`);
+            } catch (e) { showToast("Error approving: " + e.message); }
+        };
+
+        window.rejectRequest = async (reqId) => {
+            if(!confirm("Reject this request?")) return;
+            await updateDoc(doc(firestore, "balance_requests", reqId), { status: 'rejected' });
+            showToast("Request rejected.");
+        };
+
         document.getElementById('login-form').addEventListener('submit', e=>{e.preventDefault(); signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value).catch(e=>showToast(e.message))});
         document.getElementById('register-form').addEventListener('submit', e=>{e.preventDefault(); createUserWithEmailAndPassword(auth, document.getElementById('reg-email').value, document.getElementById('reg-pass').value).then(c=>setDoc(doc(firestore,"users",c.user.uid),{name:document.getElementById('reg-name').value,balance:0})).catch(e=>showToast(e.message))});
         document.getElementById('forgot-form').addEventListener('submit', e=>{e.preventDefault(); sendPasswordResetEmail(auth, document.getElementById('forgot-email').value).then(()=>showToast('Email sent!')).catch(e=>showToast(e.message));});
         
         window.logout = () => signOut(auth);
-        
-        document.getElementById('request-balance-form').addEventListener('submit', async e => { 
-            e.preventDefault(); 
-            const amt = document.getElementById('topup-amount').value;
-            const refNum = document.getElementById('topup-ref').value; 
-            if(!amt || !refNum) return;
-            await addDoc(collection(firestore,"balance_requests"),{userId:auth.currentUser.uid, userEmail: auth.currentUser.email, amount:parseFloat(amt), refNum: refNum, status:'pending', timestamp:serverTimestamp()}); 
-            showToast('Request Sent'); 
-            document.getElementById('wallet-modal').classList.remove('open'); 
-            document.getElementById('request-balance-form').reset();
-        });
-
         document.getElementById('bg-music-toggle').addEventListener('change', e=>{ e.target.checked?bgMusic.play():bgMusic.pause() });
         document.getElementById('search-input').addEventListener('input', e=>{ const t=e.target.value.toLowerCase(); const g=document.getElementById('grid-search'); g.innerHTML=''; const r=allContent.filter(c=>c.title.toLowerCase().includes(t)); r.length?r.forEach(c=>g.innerHTML+=createCard(c)):g.innerHTML='<p style="color:#777;">No results</p>'; });
     </script>
