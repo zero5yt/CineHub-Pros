@@ -276,12 +276,13 @@
         <div id="view-home" class="view active">
             <div id="viewpager"></div>
             
-            <!-- UPDATED FILTERS WITH NEW CATEGORIES -->
+            <!-- UPDATED FILTERS WITH NEW CATEGORIES + "MY PURCHASES" TAB -->
             <div class="filter-container">
                 <div class="filter-tabs">
                     <button class="filter-tab active" onclick="filterContent('all', this)">All</button>
                     <button class="filter-tab" onclick="filterContent('movie', this)">Movies</button>
                     <button class="filter-tab" onclick="filterContent('series', this)">Series</button>
+                    <button class="filter-tab" onclick="filterContent('purchased', this)" style="color:#e50914;">My Purchases</button>
                     <button class="filter-tab" onclick="filterContent('pop', this)">Pop</button>
                     <button class="filter-tab" onclick="filterContent('vivamax', this)">Vivamax</button>
                     <button class="filter-tab" onclick="filterContent('tagalog', this)">Tagalog Dub</button>
@@ -533,6 +534,11 @@
                     document.getElementById('user-balance-display').innerText = `₱${(userProfile.balance || 0).toFixed(2)}`;
                     document.getElementById('setting-name').innerText = userProfile.name || "User";
                     document.getElementById('setting-email').innerText = user.email;
+                    
+                    // FIX HERE: Re-render Home whenever user data (like purchases) updates
+                    if(allContent.length > 0) {
+                        renderHome();
+                    }
                 } else {
                     // Self-healing if user doc is missing but auth exists
                     setDoc(docRef, { email: user.email, balance: 0, purchasedContent: [] });
@@ -601,6 +607,10 @@
             // FILTER LOGIC (UPDATED)
             if (filter === 'all') {
                 contentToDisplay = allContent;
+            } else if (filter === 'purchased') {
+                // MY PURCHASES FILTER
+                const ownedIds = userProfile.purchasedContent || [];
+                contentToDisplay = allContent.filter(item => ownedIds.includes(item.id));
             } else if (['movie', 'series'].includes(filter)) {
                 contentToDisplay = allContent.filter(item => item.type === filter);
             } else {
